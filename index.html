@@ -266,6 +266,39 @@
             background: #a0aec0;
         }
         
+        .loading-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            text-align: center;
+        }
+        
+        .loading-indicator.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -282,6 +315,12 @@
     </style>
 </head>
 <body>
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>正在加载政策数据...</p>
+    </div>
+
     <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
@@ -302,285 +341,385 @@
 
     <!-- Leaflet JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    
-    <!-- GeoJSON data -->
-    <script src="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"></script>
-    <script src="https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"></script>
 
     <script>
-        // Global AI Regulatory Policy Dataset
-        const policyData = {
-            "US": {
-                name: "United States",
-                nameCN: "美国",
-                severity: "Light",
-                severityCN: "宽松",
-                mainLaws: "Executive Order on Safe, Secure, and Trustworthy Development and Use of Artificial Intelligence",
-                coreRegulation: "Voluntary framework, sector-specific approach",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: false }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: false },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: false }
-                ],
-                lastUpdated: "2025-02-15",
-                description: "Sector-specific regulation with emphasis on innovation"
-            },
-            "CN": {
-                name: "China",
-                nameCN: "中国",
-                severity: "Strict",
-                severityCN: "严格",
-                mainLaws: "Generative AI Service Management Interim Measures",
-                coreRegulation: "Content control, algorithm governance, data sovereignty",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: true },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: true }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: true }
-                ],
-                lastUpdated: "2025-03-10",
-                description: "Comprehensive regulation with focus on content security and state control"
-            },
-            "FR": {
-                name: "France / European Union",
-                nameCN: "法国 / 欧盟",
-                severity: "Strict",
-                severityCN: "严格",
-                mainLaws: "EU AI Act, Digital Services Act (DSA)",
-                coreRegulation: "Risk-based approach, transparency, high-risk system regulation",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: true },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: true }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: true }
-                ],
-                lastUpdated: "2024-12-01",
-                description: "Risk-based compliance framework with mandatory transparency and audits"
-            },
-            "GB": {
-                name: "United Kingdom",
-                nameCN: "英国",
-                severity: "Moderate",
-                severityCN: "温和",
-                mainLaws: "AI Bill (Draft), pro-innovation regulation framework",
-                coreRegulation: "Flexible principles-based approach, sector guidance",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: false }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: false }
-                ],
-                lastUpdated: "2025-01-20",
-                description: "Principle-based regulation encouraging innovation with safety guardrails"
-            },
-            "SG": {
-                name: "Singapore",
-                nameCN: "新加坡",
-                severity: "Moderate",
-                severityCN: "温和",
-                mainLaws: "Model AI Governance Framework, AI Singapore initiative",
-                coreRegulation: "Governance-led approach, industry collaboration",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: false }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: false }
-                ],
-                lastUpdated: "2025-02-08",
-                description: "Collaborative governance framework balancing innovation and responsibility"
-            },
-            "DE": {
-                name: "Germany",
-                nameCN: "德国",
-                severity: "Strict",
-                severityCN: "严格",
-                mainLaws: "EU AI Act (Lead), German AI Strategy, Data Protection & AI Regulations",
-                coreRegulation: "Strict compliance with EU AI Act, high data protection standards",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: true },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: true }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: true }
-                ],
-                lastUpdated: "2024-11-15",
-                description: "Strict EU AI Act compliance with additional national data protection layers"
-            },
-            "JP": {
-                name: "Japan",
-                nameCN: "日本",
-                severity: "Moderate",
-                severityCN: "温和",
-                mainLaws: "Code of Conduct for AI Development, Human-Centered AI Society Initiative",
-                coreRegulation: "Principle-based guidance, public-private collaboration",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: false }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: false }
-                ],
-                lastUpdated: "2025-01-30",
-                description: "Soft-law approach with emphasis on industry self-regulation and ethical guidelines"
-            },
-            "CA": {
-                name: "Canada",
-                nameCN: "加拿大",
-                severity: "Moderate",
-                severityCN: "温和",
-                mainLaws: "Bill C-27 (AIDA - Proposed), PIPEDA amendments",
-                coreRegulation: "Risk-based regulation with privacy-first approach",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: true }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: false }
-                ],
-                lastUpdated: "2025-02-20",
-                description: "Risk-centric regulation balancing innovation with privacy protection"
-            },
-            "BR": {
-                name: "Brazil",
-                nameCN: "巴西",
-                severity: "Moderate",
-                severityCN: "温和",
-                mainLaws: "Bill 2338/2023 (AI Law - Draft), LGPD compliance",
-                coreRegulation: "Risk-based with human rights focus, LLM regulation",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: true }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: true },
-                    { requirement: "Large Platform Governance", status: false },
-                    { requirement: "Democratic Safety Audit", status: true }
-                ],
-                lastUpdated: "2025-03-05",
-                description: "Human rights-centered AI regulation with LGPD data protection integration"
-            },
-            "AU": {
-                name: "Australia",
-                nameCN: "澳大利亚",
-                severity: "Moderate",
-                severityCN: "温和",
-                mainLaws: "AI Principles (Recommended), Online Safety Regulation amendments",
-                coreRegulation: "Principles-based approach, sector guidance, digital safety focus",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: true },
-                    { requirement: "Subliminal Manipulation Control", status: true }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: false },
-                    { requirement: "Large Platform Governance", status: true },
-                    { requirement: "Democratic Safety Audit", status: true }
-                ],
-                lastUpdated: "2025-02-12",
-                description: "Flexible principles-based framework with digital platform accountability"
-            },
-            "AE": {
-                name: "United Arab Emirates",
-                nameCN: "阿联酋",
-                severity: "Light",
-                severityCN: "宽松",
-                mainLaws: "UAE AI Leadership Strategy, Dubai AI Ethics Board",
-                coreRegulation: "Innovation-focused, ethical guidelines, tech hub promotion",
-                technicalCompliance: [
-                    { requirement: "Watermarking", status: false },
-                    { requirement: "Model Transparency", status: false },
-                    { requirement: "Subliminal Manipulation Control", status: false }
-                ],
-                systemicRiskGovernance: [
-                    { requirement: "GPAI Risk Assessment", status: false },
-                    { requirement: "Large Platform Governance", status: false },
-                    { requirement: "Democratic Safety Audit", status: false }
-                ],
-                lastUpdated: "2025-02-01",
-                description: "Pro-innovation framework positioning UAE as regional AI innovation hub"
-            }
-        };
+        // ============================================
+        // 1. 全局变量存放从 JSON 加载的数据
+        // ============================================
+        let countryPolicyData = [];
+        let map = null;
+        let markersLayer = L.featureGroup();
 
-        // Country coordinates mapping
+        // 国家坐标映射
         const countryCoordinates = {
             "US": [39.8283, -98.5795],
+            "United States": [39.8283, -98.5795],
             "CN": [35.8617, 104.1954],
+            "China": [35.8617, 104.1954],
             "FR": [46.2276, 2.2137],
+            "France": [46.2276, 2.2137],
             "GB": [55.3781, -3.4360],
+            "UK": [55.3781, -3.4360],
+            "United Kingdom": [55.3781, -3.4360],
             "SG": [1.3521, 103.8198],
+            "Singapore": [1.3521, 103.8198],
             "DE": [51.1657, 10.4515],
+            "Germany": [51.1657, 10.4515],
             "JP": [36.2048, 138.2529],
+            "Japan": [36.2048, 138.2529],
             "CA": [56.1304, -106.3468],
+            "Canada": [56.1304, -106.3468],
             "BR": [-14.2350, -51.9253],
+            "Brazil": [-14.2350, -51.9253],
             "AU": [-25.2744, 133.7751],
-            "AE": [23.4241, 53.8478]
+            "Australia": [-25.2744, 133.7751],
+            "AE": [23.4241, 53.8478],
+            "UAE": [23.4241, 53.8478],
+            "United Arab Emirates": [23.4241, 53.8478]
         };
 
-        // Initialize map
-        const map = L.map('map').setView([20, 0], 2);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO',
-            maxZoom: 19,
-            subdomains: 'abcd'
-        }).addTo(map);
-
-        // Severity color mapping
+        // 严厉程度到颜色的映射
         const severityColors = {
             "Strict": "#dc2626",
+            "严格": "#dc2626",
             "Moderate": "#f59e0b",
-            "Light": "#10b981"
+            "温和": "#f59e0b",
+            "Light": "#10b981",
+            "宽松": "#10b981"
         };
 
-        // Function to get severity in Chinese
-        function getSeverityCN(severity) {
-            const map = {
-                "Strict": "严格",
-                "Moderate": "温和",
-                "Light": "宽松"
-            };
-            return map[severity] || severity;
+        // ============================================
+        // 2. 异步加载 JSON 文件
+        // ============================================
+        async function loadPolicyData() {
+            showLoading(true);
+            try {
+                // 尝试动态抓取 Python 生成的数据文件
+                const response = await fetch('ai_policy_data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                countryPolicyData = await response.json();
+                console.log("✓ 数据加载成功 (从 ai_policy_data.json):", countryPolicyData);
+                
+            } catch (error) {
+                console.warn("⚠ 加载 ai_policy_data.json 失败，使用默认内置数据:", error);
+                // 备用兜底数据，防止白屏
+                countryPolicyData = getDefaultPolicyData();
+            }
+            
+            showLoading(false);
+            // 初始化地图和侧边栏逻辑
+            initMapWithData();
         }
 
-        // Function to render sidebar content
-        function renderSidebarContent(countryCode) {
-            const data = policyData[countryCode];
-            if (!data) return;
+        // ============================================
+        // 默认数据（备用兜底）
+        // ============================================
+        function getDefaultPolicyData() {
+            return [
+                {
+                    "country": "United States",
+                    "countryCode": "US",
+                    "severity": "Light",
+                    "severityCN": "宽松",
+                    "mainLaws": "Executive Order on Safe, Secure, and Trustworthy Development and Use of Artificial Intelligence",
+                    "coreRegulation": "Voluntary framework, sector-specific approach",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": false }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": false },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": false }
+                    ],
+                    "lastUpdated": "2025-02-15",
+                    "description": "Sector-specific regulation with emphasis on innovation"
+                },
+                {
+                    "country": "China",
+                    "countryCode": "CN",
+                    "severity": "Strict",
+                    "severityCN": "严格",
+                    "mainLaws": "Generative AI Service Management Interim Measures",
+                    "coreRegulation": "Content control, algorithm governance, data sovereignty",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": true },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": true }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": true }
+                    ],
+                    "lastUpdated": "2025-03-10",
+                    "description": "Comprehensive regulation with focus on content security and state control"
+                },
+                {
+                    "country": "France",
+                    "countryCode": "FR",
+                    "severity": "Strict",
+                    "severityCN": "严格",
+                    "mainLaws": "EU AI Act, Digital Services Act (DSA)",
+                    "coreRegulation": "Risk-based approach, transparency, high-risk system regulation",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": true },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": true }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": true }
+                    ],
+                    "lastUpdated": "2024-12-01",
+                    "description": "Risk-based compliance framework with mandatory transparency and audits"
+                },
+                {
+                    "country": "United Kingdom",
+                    "countryCode": "GB",
+                    "severity": "Moderate",
+                    "severityCN": "温和",
+                    "mainLaws": "AI Bill (Draft), pro-innovation regulation framework",
+                    "coreRegulation": "Flexible principles-based approach, sector guidance",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": false }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": false }
+                    ],
+                    "lastUpdated": "2025-01-20",
+                    "description": "Principle-based regulation encouraging innovation with safety guardrails"
+                },
+                {
+                    "country": "Singapore",
+                    "countryCode": "SG",
+                    "severity": "Moderate",
+                    "severityCN": "温和",
+                    "mainLaws": "Model AI Governance Framework, AI Singapore initiative",
+                    "coreRegulation": "Governance-led approach, industry collaboration",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": false }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": false }
+                    ],
+                    "lastUpdated": "2025-02-08",
+                    "description": "Collaborative governance framework balancing innovation and responsibility"
+                },
+                {
+                    "country": "Germany",
+                    "countryCode": "DE",
+                    "severity": "Strict",
+                    "severityCN": "严格",
+                    "mainLaws": "EU AI Act (Lead), German AI Strategy, Data Protection & AI Regulations",
+                    "coreRegulation": "Strict compliance with EU AI Act, high data protection standards",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": true },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": true }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": true }
+                    ],
+                    "lastUpdated": "2024-11-15",
+                    "description": "Strict EU AI Act compliance with additional national data protection layers"
+                },
+                {
+                    "country": "Japan",
+                    "countryCode": "JP",
+                    "severity": "Moderate",
+                    "severityCN": "温和",
+                    "mainLaws": "Code of Conduct for AI Development, Human-Centered AI Society Initiative",
+                    "coreRegulation": "Principle-based guidance, public-private collaboration",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": false }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": false }
+                    ],
+                    "lastUpdated": "2025-01-30",
+                    "description": "Soft-law approach with emphasis on industry self-regulation and ethical guidelines"
+                },
+                {
+                    "country": "Canada",
+                    "countryCode": "CA",
+                    "severity": "Moderate",
+                    "severityCN": "温和",
+                    "mainLaws": "Bill C-27 (AIDA - Proposed), PIPEDA amendments",
+                    "coreRegulation": "Risk-based regulation with privacy-first approach",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": true }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": false }
+                    ],
+                    "lastUpdated": "2025-02-20",
+                    "description": "Risk-centric regulation balancing innovation with privacy protection"
+                },
+                {
+                    "country": "Brazil",
+                    "countryCode": "BR",
+                    "severity": "Moderate",
+                    "severityCN": "温和",
+                    "mainLaws": "Bill 2338/2023 (AI Law - Draft), LGPD compliance",
+                    "coreRegulation": "Risk-based with human rights focus, LLM regulation",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": true }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": true },
+                        { "requirement": "Large Platform Governance", "status": false },
+                        { "requirement": "Democratic Safety Audit", "status": true }
+                    ],
+                    "lastUpdated": "2025-03-05",
+                    "description": "Human rights-centered AI regulation with LGPD data protection integration"
+                },
+                {
+                    "country": "Australia",
+                    "countryCode": "AU",
+                    "severity": "Moderate",
+                    "severityCN": "温和",
+                    "mainLaws": "AI Principles (Recommended), Online Safety Regulation amendments",
+                    "coreRegulation": "Principles-based approach, sector guidance, digital safety focus",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": true },
+                        { "requirement": "Subliminal Manipulation Control", "status": true }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": false },
+                        { "requirement": "Large Platform Governance", "status": true },
+                        { "requirement": "Democratic Safety Audit", "status": true }
+                    ],
+                    "lastUpdated": "2025-02-12",
+                    "description": "Flexible principles-based framework with digital platform accountability"
+                },
+                {
+                    "country": "United Arab Emirates",
+                    "countryCode": "AE",
+                    "severity": "Light",
+                    "severityCN": "宽松",
+                    "mainLaws": "UAE AI Leadership Strategy, Dubai AI Ethics Board",
+                    "coreRegulation": "Innovation-focused, ethical guidelines, tech hub promotion",
+                    "technicalCompliance": [
+                        { "requirement": "Watermarking", "status": false },
+                        { "requirement": "Model Transparency", "status": false },
+                        { "requirement": "Subliminal Manipulation Control", "status": false }
+                    ],
+                    "systemicRiskGovernance": [
+                        { "requirement": "GPAI Risk Assessment", "status": false },
+                        { "requirement": "Large Platform Governance", "status": false },
+                        { "requirement": "Democratic Safety Audit", "status": false }
+                    ],
+                    "lastUpdated": "2025-02-01",
+                    "description": "Pro-innovation framework positioning UAE as regional AI innovation hub"
+                }
+            ];
+        }
 
-            const severityClass = `severity-${data.severity.toLowerCase()}`;
-            
-            const technicalHtml = data.technicalCompliance
+        // ============================================
+        // 3. 初始化地图并渲染数据
+        // ============================================
+        function initMapWithData() {
+            // 初始化地图
+            if (!map) {
+                map = L.map('map').setView([20, 0], 2);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap contributors © CARTO',
+                    maxZoom: 19,
+                    subdomains: 'abcd'
+                }).addTo(map);
+            }
+
+            // 清空之前的标记
+            markersLayer.clearLayers();
+
+            // 为每个国家添加标记
+            countryPolicyData.forEach((country) => {
+                const countryName = country.country || country.countryCode || '';
+                const coords = countryCoordinates[countryName] || 
+                              countryCoordinates[country.countryCode] || 
+                              null;
+
+                if (!coords) {
+                    console.warn(`⚠ 找不到坐标: ${countryName} (${country.countryCode})`);
+                    return;
+                }
+
+                const severity = country.severity || country.severityCN || "Moderate";
+                const color = severityColors[severity] || "#f59e0b";
+
+                // 创建圆形标记
+                const circle = L.circleMarker(coords, {
+                    radius: 12,
+                    fillColor: color,
+                    color: color,
+                    weight: 2,
+                    opacity: 0.8,
+                    fillOpacity: 0.7
+                }).addTo(markersLayer);
+
+                // 弹出框内容
+                const popupContent = `
+                    <div class="info-popup">
+                        <div class="info-popup-title">${countryName}</div>
+                        <div class="info-popup-content">
+                            <strong>等级：</strong>${country.severityCN || country.severity}<br>
+                            <strong>法案：</strong>${(country.mainLaws || '').substring(0, 40)}...<br>
+                            <a href="#" onclick="return false;" style="color: #667eea;">点击地图查看详情</a>
+                        </div>
+                    </div>
+                `;
+                circle.bindPopup(popupContent, { maxWidth: 250 });
+
+                // 点击事件：渲染侧边栏
+                circle.on('click', () => {
+                    renderSidebarContent(country);
+                });
+            });
+
+            markersLayer.addTo(map);
+
+            // 添加图例
+            addLegend();
+
+            console.log(`✓ 地图已初始化，共有 ${countryPolicyData.length} 个国家`);
+        }
+
+        // ============================================
+        // 4. 侧边栏渲染逻辑
+        // ============================================
+        function renderSidebarContent(country) {
+            const severityClass = `severity-${(country.severity || country.severityCN || 'moderate').toLowerCase()}`;
+            const countryName = country.country || country.countryCode || '';
+            const severity = country.severity || country.severityCN || "Moderate";
+
+            // 技术合规义务
+            const technicalHtml = (country.technicalCompliance || [])
                 .map(item => `
                     <div class="eco-legal-item">
                         <span class="eco-legal-item-check">${item.status ? '✓' : '○'}</span>
@@ -588,7 +727,8 @@
                     </div>
                 `).join('');
 
-            const systemicHtml = data.systemicRiskGovernance
+            // 系统性风险治理
+            const systemicHtml = (country.systemicRiskGovernance || [])
                 .map(item => `
                     <div class="eco-legal-item">
                         <span class="eco-legal-item-check">${item.status ? '✓' : '○'}</span>
@@ -597,21 +737,22 @@
                 `).join('');
 
             const html = `
-                <div class="country-title">${data.nameCN}</div>
+                <div class="country-title">${countryName}</div>
                 <div class="severity-badge ${severityClass}">
-                    📊 监管等级：${getSeverityCN(data.severity)}
+                    📊 监管等级：${severity}
                 </div>
                 
                 <div class="info-section">
                     <div class="info-section-title">📜 核心法案</div>
-                    <div class="info-section-content">${data.mainLaws}</div>
+                    <div class="info-section-content">${country.mainLaws || 'N/A'}</div>
                 </div>
                 
                 <div class="info-section">
                     <div class="info-section-title">🎯 核心规制焦点</div>
-                    <div class="info-section-content">${data.coreRegulation}</div>
+                    <div class="info-section-content">${country.coreRegulation || 'N/A'}</div>
                 </div>
                 
+                ${technicalHtml ? `
                 <div class="eco-legal-card">
                     <div class="eco-legal-title">
                         <span class="eco-legal-icon">⚙️</span>
@@ -621,7 +762,9 @@
                         ${technicalHtml}
                     </div>
                 </div>
+                ` : ''}
                 
+                ${systemicHtml ? `
                 <div class="eco-legal-card">
                     <div class="eco-legal-title">
                         <span class="eco-legal-icon">🛡️</span>
@@ -631,72 +774,74 @@
                         ${systemicHtml}
                     </div>
                 </div>
+                ` : ''}
                 
+                ${country.lastUpdated ? `
                 <div class="update-time">
-                    ⏰ 最后更新：${data.lastUpdated}
+                    ⏰ 最后更新：${country.lastUpdated}
                 </div>
+                ` : ''}
             `;
 
             document.getElementById('sidebarContent').innerHTML = html;
         }
 
-        // Add markers for each country
-        Object.entries(policyData).forEach(([code, data]) => {
-            const coords = countryCoordinates[code];
-            if (!coords) return;
-
-            const color = severityColors[data.severity];
-            const htmlPopup = `
-                <div class="info-popup">
-                    <div class="info-popup-title">${data.nameCN}</div>
-                    <div class="info-popup-content">
-                        <strong>等级：</strong>${getSeverityCN(data.severity)}<br>
-                        <strong>法案：</strong>${data.mainLaws.substring(0, 40)}...<br>
-                        <a href="#" onclick="return false;" style="color: #667eea;">点击查看详情</a>
+        // ============================================
+        // 5. 添加图例
+        // ============================================
+        function addLegend() {
+            const legend = L.control({ position: 'bottomright' });
+            
+            legend.onAdd = function() {
+                const div = L.DomUtil.create('div', 'bg-white p-3 rounded-lg shadow-lg text-sm');
+                div.innerHTML = `
+                    <div style="font-weight: 700; margin-bottom: 8px;">监管等级</div>
+                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background: #dc2626; border-radius: 50%; margin-right: 8px;"></span>
+                        <span>严格 (Strict)</span>
                     </div>
-                </div>
-            `;
+                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></span>
+                        <span>温和 (Moderate)</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background: #10b981; border-radius: 50%; margin-right: 8px;"></span>
+                        <span>宽松 (Light)</span>
+                    </div>
+                `;
+                return div;
+            };
+            
+            legend.addTo(map);
+        }
 
-            const circle = L.circleMarker(coords, {
-                radius: 12,
-                fillColor: color,
-                color: color,
-                weight: 2,
-                opacity: 0.8,
-                fillOpacity: 0.7
-            })
-            .bindPopup(htmlPopup, { maxWidth: 250 })
-            .addTo(map);
+        // ============================================
+        // 6. 加载指示器控制
+        // ============================================
+        function showLoading(show) {
+            const indicator = document.getElementById('loadingIndicator');
+            if (show) {
+                indicator.classList.add('show');
+            } else {
+                indicator.classList.remove('show');
+            }
+        }
 
-            circle.on('click', () => {
-                renderSidebarContent(code);
-            });
-        });
+        // ============================================
+        // 7. 页面加载时执行
+        // ============================================
+        window.addEventListener('load', loadPolicyData);
 
-        // Add a legend
-        const legend = L.control({ position: 'bottomright' });
-        
-        legend.onAdd = function() {
-            const div = L.DomUtil.create('div', 'bg-white p-3 rounded-lg shadow-lg text-sm');
-            div.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 8px;">监管等级</div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #dc2626; border-radius: 50%; margin-right: 8px;"></span>
-                    <span>严格 (Strict)</span>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></span>
-                    <span>温和 (Moderate)</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #10b981; border-radius: 50%; margin-right: 8px;"></span>
-                    <span>宽松 (Light)</span>
-                </div>
-            `;
-            return div;
+        // 用于外部调用的 API（可选）
+        window.updatePolicyData = function(newData) {
+            countryPolicyData = newData;
+            console.log("✓ 数据已更新，重新初始化地图");
+            initMapWithData();
         };
-        
-        legend.addTo(map);
+
+        window.getPolicyData = function() {
+            return countryPolicyData;
+        };
     </script>
 </body>
 </html>
