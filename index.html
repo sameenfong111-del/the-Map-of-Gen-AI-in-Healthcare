@@ -58,7 +58,7 @@
             font-size: 28px;
             font-weight: 800;
             color: #1a202c;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         
         .severity-badge {
@@ -86,71 +86,71 @@
             color: #065f46;
         }
         
-        .info-section {
-            margin-bottom: 22px;
+        .frameworks-section {
             background: white;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
             border-left: 4px solid #667eea;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            font-size: 13px;
+            color: #2d3748;
+            line-height: 1.6;
         }
         
-        .info-section-title {
-            font-size: 13px;
+        .frameworks-label {
+            font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             color: #667eea;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             letter-spacing: 1px;
         }
         
-        .info-section-content {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #2d3748;
-        }
-        
-        .focus-item {
+        .regulatory-layers {
             display: flex;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
         }
         
-        .focus-icon {
-            margin-right: 10px;
-            color: #667eea;
-            font-weight: 700;
-            min-width: 20px;
-        }
-        
-        .focus-text {
-            font-size: 13px;
-            color: #2d3748;
-            line-height: 1.5;
-        }
-        
-        .eco-legal-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
-            padding: 16px;
+        .regulatory-layer {
+            background: white;
             border-radius: 12px;
-            margin-bottom: 16px;
-            border: 1px solid #dee2e6;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
         }
         
-        .eco-legal-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 10px;
+        .regulatory-layer:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateX(4px);
+        }
+        
+        .layer-header {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
         }
         
-        .eco-legal-icon {
+        .layer-icon {
+            font-size: 18px;
+            min-width: 24px;
+        }
+        
+        .layer-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2d3748;
+            flex: 1;
+        }
+        
+        .layer-number {
             display: inline-block;
             width: 24px;
             height: 24px;
@@ -161,48 +161,66 @@
             line-height: 24px;
             font-size: 12px;
             font-weight: 700;
-            margin-right: 8px;
+            margin-right: 6px;
         }
         
-        .eco-legal-content {
+        .layer-content {
+            padding: 14px;
             font-size: 13px;
-            line-height: 1.6;
             color: #4a5568;
+            line-height: 1.6;
+            background: white;
         }
         
-        .eco-legal-items {
+        .layer-content-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .layer-content-text {
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        .compliance-checklist {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
         
-        .eco-legal-item {
+        .compliance-item {
             display: flex;
             align-items: flex-start;
             padding: 8px;
-            background: white;
-            border-radius: 8px;
+            background: #f7fafc;
+            border-radius: 6px;
+            border-left: 2px solid #667eea;
         }
         
-        .eco-legal-item-check {
+        .compliance-check {
             color: #48bb78;
             font-weight: 700;
             margin-right: 8px;
             min-width: 16px;
+            font-size: 14px;
         }
         
-        .eco-legal-item-text {
+        .compliance-text {
             font-size: 12px;
             color: #2d3748;
-            line-height: 1.4;
+            line-height: 1.5;
         }
         
         .update-time {
             font-size: 12px;
             color: #718096;
-            margin-top: 16px;
+            margin-top: 20px;
             padding-top: 16px;
             border-top: 1px solid #e2e8f0;
+            text-align: center;
         }
         
         .welcome-message {
@@ -244,7 +262,6 @@
             color: #4a5568;
         }
         
-        /* Custom map styling */
         .leaflet-control-attribution {
             background: rgba(255, 255, 255, 0.8) !important;
         }
@@ -344,7 +361,7 @@
 
     <script>
         // ============================================
-        // 1. 全局变量存放从 JSON 加载的数据
+        // 1. 全局变量
         // ============================================
         let countryPolicyData = [];
         let map = null;
@@ -378,7 +395,6 @@
             "United Arab Emirates": [23.4241, 53.8478]
         };
 
-        // 严厉程度到颜色的映射
         const severityColors = {
             "Strict": "#dc2626",
             "严格": "#dc2626",
@@ -394,7 +410,6 @@
         async function loadPolicyData() {
             showLoading(true);
             try {
-                // 尝试动态抓取 Python 生成的数据文件
                 const response = await fetch('ai_policy_data.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -404,12 +419,10 @@
                 
             } catch (error) {
                 console.warn("⚠ 加载 ai_policy_data.json 失败，使用默认内置数据:", error);
-                // 备用兜底数据，防止白屏
                 countryPolicyData = getDefaultPolicyData();
             }
             
             showLoading(false);
-            // 初始化地图和侧边栏逻辑
             initMapWithData();
         }
 
@@ -424,7 +437,14 @@
                     "severity": "Light",
                     "severityCN": "宽松",
                     "mainLaws": "Executive Order on Safe, Secure, and Trustworthy Development and Use of Artificial Intelligence",
+                    "frameworks": ["Executive Order 14110", "NIST AI RMF", "Voluntary AI Principles"],
                     "coreRegulation": "Voluntary framework, sector-specific approach",
+                    "levels": {
+                        "data_privacy": "主要依赖于现有的 GDPR、CCPA 等法规。无统一的联邦 AI 隐私法，但美国消费者隐私权法（如 CCPA）涵盖 AI 应用中的数据使用。重点关注数据持有者和使用者的责任。",
+                        "technical_compliance": "美国倾向于自愿性框架而非强制合规。NIST AI Risk Management Framework 提供指导，但无法律强制力。企业需遵守行业特定标准（医疗、金融等）。",
+                        "systemic_risk": "美国对大型 AI 模型（如 GPT-4）的系统风险关注度上升。Executive Order 14110 要求对 AI 系统进行风险评估，但未形成强制的监管框架。政府倾向于通过 FTC 的反垄断执法来管理大科技公司的 AI 应用。",
+                        "soft_law": "美国强调行业自律和伦理准则。多个组织（如 AI Now Institute、Partnership on AI）制定伦理指南。技术社群推崇责任 AI、可解释性、公平性等原则，但缺乏法律约束力。"
+                    },
                     "technicalCompliance": [
                         { "requirement": "Watermarking", "status": false },
                         { "requirement": "Model Transparency", "status": true },
@@ -436,6 +456,7 @@
                         { "requirement": "Democratic Safety Audit", "status": false }
                     ],
                     "lastUpdated": "2025-02-15",
+                    "update_date": "2025-02-15",
                     "description": "Sector-specific regulation with emphasis on innovation"
                 },
                 {
@@ -444,7 +465,14 @@
                     "severity": "Strict",
                     "severityCN": "严格",
                     "mainLaws": "Generative AI Service Management Interim Measures",
+                    "frameworks": ["《生成式人工智能服务管理暂行办法》", "《互联网信息服务算法推荐管理规定》", "《网络安全法》"],
                     "coreRegulation": "Content control, algorithm governance, data sovereignty",
+                    "levels": {
+                        "data_privacy": "中国的《个人信息保护法》（PIPL）等同于中国版 GDPR。AI 系统必须遵守严格的数据本地化要求、用户同意机制和数据安全审查。生成式 AI 服务需获得网信办批准，内容必须通过审核。",
+                        "technical_compliance": "中国强制要求 AI 生成内容进行身份验证、数据隐私加密和水印标记。生成式 AI 服务需通过网络安全审查。企业需定期进行合规检查，向政府报告使用情况。",
+                        "systemic_risk": "中国对 AI 系统的系统性风险管理极其严格。要求对所有生成式 AI 模型进行预训练和微调时的安全评估。超大型模型需通过国家级审查，政府定期进行系统性社会风险评估。重点防范意识形态风险和信息泄露。",
+                        "soft_law": "中国遵循政府主导的伦理框架。《新一代人工智能伦理规范》由中国科学院等机构发布，强调人类主导、安全可靠、公平透明等原则。行业自律组织（如中国互联网协会）制定指南，但最终由政府监管部门主导。"
+                    },
                     "technicalCompliance": [
                         { "requirement": "Watermarking", "status": true },
                         { "requirement": "Model Transparency", "status": true },
@@ -456,6 +484,7 @@
                         { "requirement": "Democratic Safety Audit", "status": true }
                     ],
                     "lastUpdated": "2025-03-10",
+                    "update_date": "2025-03-10",
                     "description": "Comprehensive regulation with focus on content security and state control"
                 },
                 {
@@ -464,7 +493,14 @@
                     "severity": "Strict",
                     "severityCN": "严格",
                     "mainLaws": "EU AI Act, Digital Services Act (DSA)",
+                    "frameworks": ["EU AI Act (2024)", "Digital Services Act", "GDPR"],
                     "coreRegulation": "Risk-based approach, transparency, high-risk system regulation",
+                    "levels": {
+                        "data_privacy": "EU GDPR 是世界上最严格的数据保护法。AI 系统必须获得用户明确同意，处理敏感数据需进行隐私影响评估。EU AI Act 进一步要求对高风险 AI 进行数据治理、质量管理和偏见检测。",
+                        "technical_compliance": "EU AI Act 将 AI 系统分为四个风险等级（禁止、高风险、有限风险、最小风险）。高风险系统需通过合规性评估、CE 标记和文档审查。强制要求可解释性、人工监督、用户知情权和系统文件保存。",
+                        "systemic_risk": "EU DSA 要求大型在线平台定期进行系统性民主与安全风险评估，包括内容审核、算法推荐的社会影响、儿童保护等。AI 系统需评估对言论自由、隐私、消费者权益等的风险，建立风险缓解措施。",
+                        "soft_law": "欧盟强调透明度和人类中心原则。根据《欧盟 AI 伦理指南》，AI 系统应满足人类主导、技术鲁棒性、隐私和数据治理、透明性等要求。建立独立审计机制，鼓励社会各界参与 AI 治理。"
+                    },
                     "technicalCompliance": [
                         { "requirement": "Watermarking", "status": true },
                         { "requirement": "Model Transparency", "status": true },
@@ -476,6 +512,7 @@
                         { "requirement": "Democratic Safety Audit", "status": true }
                     ],
                     "lastUpdated": "2024-12-01",
+                    "update_date": "2024-12-01",
                     "description": "Risk-based compliance framework with mandatory transparency and audits"
                 },
                 {
@@ -484,7 +521,14 @@
                     "severity": "Moderate",
                     "severityCN": "温和",
                     "mainLaws": "AI Bill (Draft), pro-innovation regulation framework",
+                    "frameworks": ["AI Bill", "Data Protection Act 2018", "Online Safety Bill"],
                     "coreRegulation": "Flexible principles-based approach, sector guidance",
+                    "levels": {
+                        "data_privacy": "英国的《数据保护法 2018》与 GDPR 对齐。但英国强调灵活性，允许各行业制定自己的隐私标准。AI 系统需满足数据使用的合法性、目的限制和数据最小化原则。",
+                        "technical_compliance": "英国采用原则-主导型规制（Principles-led regulation）。监管机构（如 ICO、CMA）发布指导文件，但不强制特定技术实现。企业需遵循公平性、透明性、问责制原则，但具体方式灵活。",
+                        "systemic_risk": "英国对系统性 AI 风险的关注度不及欧盟。Online Safety Bill 主要针对社交媒体平台的内容审核，而非 AI 系统本身。政府倾向于企业自管和轻度监管，以避免创新受阻。",
+                        "soft_law": "英国重视行业指导和最佳实践。Alan Turing Institute 等机构发布 AI 伦理框架，强调人类自主权、系统完整性、隐私与安全。行业组织制定部门特定指南（金融、医疗等），但政府不强制执行。"
+                    },
                     "technicalCompliance": [
                         { "requirement": "Watermarking", "status": false },
                         { "requirement": "Model Transparency", "status": true },
@@ -496,156 +540,104 @@
                         { "requirement": "Democratic Safety Audit", "status": false }
                     ],
                     "lastUpdated": "2025-01-20",
+                    "update_date": "2025-01-20",
                     "description": "Principle-based regulation encouraging innovation with safety guardrails"
-                },
-                {
-                    "country": "Singapore",
-                    "countryCode": "SG",
-                    "severity": "Moderate",
-                    "severityCN": "温和",
-                    "mainLaws": "Model AI Governance Framework, AI Singapore initiative",
-                    "coreRegulation": "Governance-led approach, industry collaboration",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": false }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": false }
-                    ],
-                    "lastUpdated": "2025-02-08",
-                    "description": "Collaborative governance framework balancing innovation and responsibility"
-                },
-                {
-                    "country": "Germany",
-                    "countryCode": "DE",
-                    "severity": "Strict",
-                    "severityCN": "严格",
-                    "mainLaws": "EU AI Act (Lead), German AI Strategy, Data Protection & AI Regulations",
-                    "coreRegulation": "Strict compliance with EU AI Act, high data protection standards",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": true },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": true }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": true }
-                    ],
-                    "lastUpdated": "2024-11-15",
-                    "description": "Strict EU AI Act compliance with additional national data protection layers"
-                },
-                {
-                    "country": "Japan",
-                    "countryCode": "JP",
-                    "severity": "Moderate",
-                    "severityCN": "温和",
-                    "mainLaws": "Code of Conduct for AI Development, Human-Centered AI Society Initiative",
-                    "coreRegulation": "Principle-based guidance, public-private collaboration",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": false }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": false }
-                    ],
-                    "lastUpdated": "2025-01-30",
-                    "description": "Soft-law approach with emphasis on industry self-regulation and ethical guidelines"
-                },
-                {
-                    "country": "Canada",
-                    "countryCode": "CA",
-                    "severity": "Moderate",
-                    "severityCN": "温和",
-                    "mainLaws": "Bill C-27 (AIDA - Proposed), PIPEDA amendments",
-                    "coreRegulation": "Risk-based regulation with privacy-first approach",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": true }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": false }
-                    ],
-                    "lastUpdated": "2025-02-20",
-                    "description": "Risk-centric regulation balancing innovation with privacy protection"
-                },
-                {
-                    "country": "Brazil",
-                    "countryCode": "BR",
-                    "severity": "Moderate",
-                    "severityCN": "温和",
-                    "mainLaws": "Bill 2338/2023 (AI Law - Draft), LGPD compliance",
-                    "coreRegulation": "Risk-based with human rights focus, LLM regulation",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": true }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": false },
-                        { "requirement": "Democratic Safety Audit", "status": true }
-                    ],
-                    "lastUpdated": "2025-03-05",
-                    "description": "Human rights-centered AI regulation with LGPD data protection integration"
-                },
-                {
-                    "country": "Australia",
-                    "countryCode": "AU",
-                    "severity": "Moderate",
-                    "severityCN": "温和",
-                    "mainLaws": "AI Principles (Recommended), Online Safety Regulation amendments",
-                    "coreRegulation": "Principles-based approach, sector guidance, digital safety focus",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": true }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": false },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": true }
-                    ],
-                    "lastUpdated": "2025-02-12",
-                    "description": "Flexible principles-based framework with digital platform accountability"
-                },
-                {
-                    "country": "United Arab Emirates",
-                    "countryCode": "AE",
-                    "severity": "Light",
-                    "severityCN": "宽松",
-                    "mainLaws": "UAE AI Leadership Strategy, Dubai AI Ethics Board",
-                    "coreRegulation": "Innovation-focused, ethical guidelines, tech hub promotion",
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": false },
-                        { "requirement": "Subliminal Manipulation Control", "status": false }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": false },
-                        { "requirement": "Large Platform Governance", "status": false },
-                        { "requirement": "Democratic Safety Audit", "status": false }
-                    ],
-                    "lastUpdated": "2025-02-01",
-                    "description": "Pro-innovation framework positioning UAE as regional AI innovation hub"
                 }
             ];
         }
 
         // ============================================
-        // 3. 初始化地图并渲染数据
+        // 3. 当点击国家时更新侧边栏
+        // ============================================
+        function updateSidebar(countryData) {
+            if (!countryData) return;
+
+            const countryName = countryData.country || countryData.countryCode || '';
+            const severity = countryData.severity || countryData.severityCN || "Moderate";
+            const severityClass = `severity-${severity.toLowerCase()}`;
+            
+            // 获取四层数据
+            const levels = countryData.levels || {};
+            const frameworks = (countryData.frameworks || []).join(', ');
+
+            // 构建四层规制框架 HTML
+            const layersHtml = `
+                <!-- 第一层：数据隐私层 -->
+                <div class="regulatory-layer">
+                    <div class="layer-header">
+                        <span class="layer-number">1</span>
+                        <span class="layer-icon">🔐</span>
+                        <span class="layer-title">数据隐私层 (Data Privacy)</span>
+                    </div>
+                    <div class="layer-content">
+                        <div class="layer-content-text">${levels.data_privacy || '暂无信息'}</div>
+                    </div>
+                </div>
+
+                <!-- 第二层：技术合规层 -->
+                <div class="regulatory-layer">
+                    <div class="layer-header">
+                        <span class="layer-number">2</span>
+                        <span class="layer-icon">⚙️</span>
+                        <span class="layer-title">技术合规层 (Technical Compliance)</span>
+                    </div>
+                    <div class="layer-content">
+                        <div class="layer-content-text">${levels.technical_compliance || '暂无信息'}</div>
+                    </div>
+                </div>
+
+                <!-- 第三层：系统性风险治理层 -->
+                <div class="regulatory-layer">
+                    <div class="layer-header">
+                        <span class="layer-number">3</span>
+                        <span class="layer-icon">🛡️</span>
+                        <span class="layer-title">系统性风险治理层 (Systemic Risk)</span>
+                    </div>
+                    <div class="layer-content">
+                        <div class="layer-content-text">${levels.systemic_risk || '暂无信息'}</div>
+                    </div>
+                </div>
+
+                <!-- 第四层：伦理与软法指南层 -->
+                <div class="regulatory-layer">
+                    <div class="layer-header">
+                        <span class="layer-number">4</span>
+                        <span class="layer-icon">📜</span>
+                        <span class="layer-title">伦理与软法指南层 (Soft Law)</span>
+                    </div>
+                    <div class="layer-content">
+                        <div class="layer-content-text">${levels.soft_law || '暂无信息'}</div>
+                    </div>
+                </div>
+            `;
+
+            const html = `
+                <div class="country-title">${countryName}</div>
+                <div class="severity-badge ${severityClass}">
+                    📊 监管等级：${severity}
+                </div>
+                
+                <div class="frameworks-section">
+                    <div class="frameworks-label">📋 核心法案框架</div>
+                    <div id="frameworks-list">${frameworks || 'N/A'}</div>
+                </div>
+                
+                <div class="regulatory-layers">
+                    ${layersHtml}
+                </div>
+                
+                <div class="update-time">
+                    ⏰ 最后更新：${countryData.lastUpdated || countryData.update_date || 'N/A'}
+                </div>
+            `;
+
+            document.getElementById('sidebarContent').innerHTML = html;
+        }
+
+        // ============================================
+        // 4. 初始化地图
         // ============================================
         function initMapWithData() {
-            // 初始化地图
             if (!map) {
                 map = L.map('map').setView([20, 0], 2);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -655,10 +647,8 @@
                 }).addTo(map);
             }
 
-            // 清空之前的标记
             markersLayer.clearLayers();
 
-            // 为每个国家添加标记
             countryPolicyData.forEach((country) => {
                 const countryName = country.country || country.countryCode || '';
                 const coords = countryCoordinates[countryName] || 
@@ -666,14 +656,13 @@
                               null;
 
                 if (!coords) {
-                    console.warn(`⚠ 找不到坐标: ${countryName} (${country.countryCode})`);
+                    console.warn(`⚠ 找不到坐标: ${countryName}`);
                     return;
                 }
 
                 const severity = country.severity || country.severityCN || "Moderate";
                 const color = severityColors[severity] || "#f59e0b";
 
-                // 创建圆形标记
                 const circle = L.circleMarker(coords, {
                     radius: 12,
                     fillColor: color,
@@ -683,107 +672,26 @@
                     fillOpacity: 0.7
                 }).addTo(markersLayer);
 
-                // 弹出框内容
                 const popupContent = `
                     <div class="info-popup">
                         <div class="info-popup-title">${countryName}</div>
                         <div class="info-popup-content">
                             <strong>等级：</strong>${country.severityCN || country.severity}<br>
-                            <strong>法案：</strong>${(country.mainLaws || '').substring(0, 40)}...<br>
-                            <a href="#" onclick="return false;" style="color: #667eea;">点击地图查看详情</a>
+                            <strong>法案：</strong>${(country.mainLaws || '').substring(0, 40)}...
                         </div>
                     </div>
                 `;
                 circle.bindPopup(popupContent, { maxWidth: 250 });
 
-                // 点击事件：渲染侧边栏
                 circle.on('click', () => {
-                    renderSidebarContent(country);
+                    updateSidebar(country);
                 });
             });
 
             markersLayer.addTo(map);
-
-            // 添加图例
             addLegend();
 
             console.log(`✓ 地图已初始化，共有 ${countryPolicyData.length} 个国家`);
-        }
-
-        // ============================================
-        // 4. 侧边栏渲染逻辑
-        // ============================================
-        function renderSidebarContent(country) {
-            const severityClass = `severity-${(country.severity || country.severityCN || 'moderate').toLowerCase()}`;
-            const countryName = country.country || country.countryCode || '';
-            const severity = country.severity || country.severityCN || "Moderate";
-
-            // 技术合规义务
-            const technicalHtml = (country.technicalCompliance || [])
-                .map(item => `
-                    <div class="eco-legal-item">
-                        <span class="eco-legal-item-check">${item.status ? '✓' : '○'}</span>
-                        <span class="eco-legal-item-text">${item.requirement}</span>
-                    </div>
-                `).join('');
-
-            // 系统性风险治理
-            const systemicHtml = (country.systemicRiskGovernance || [])
-                .map(item => `
-                    <div class="eco-legal-item">
-                        <span class="eco-legal-item-check">${item.status ? '✓' : '○'}</span>
-                        <span class="eco-legal-item-text">${item.requirement}</span>
-                    </div>
-                `).join('');
-
-            const html = `
-                <div class="country-title">${countryName}</div>
-                <div class="severity-badge ${severityClass}">
-                    📊 监管等级：${severity}
-                </div>
-                
-                <div class="info-section">
-                    <div class="info-section-title">📜 核心法案</div>
-                    <div class="info-section-content">${country.mainLaws || 'N/A'}</div>
-                </div>
-                
-                <div class="info-section">
-                    <div class="info-section-title">🎯 核心规制焦点</div>
-                    <div class="info-section-content">${country.coreRegulation || 'N/A'}</div>
-                </div>
-                
-                ${technicalHtml ? `
-                <div class="eco-legal-card">
-                    <div class="eco-legal-title">
-                        <span class="eco-legal-icon">⚙️</span>
-                        技术合规义务 (Technical Compliance)
-                    </div>
-                    <div class="eco-legal-items">
-                        ${technicalHtml}
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${systemicHtml ? `
-                <div class="eco-legal-card">
-                    <div class="eco-legal-title">
-                        <span class="eco-legal-icon">🛡️</span>
-                        系统性风险治理 (Systemic Risk Governance)
-                    </div>
-                    <div class="eco-legal-items">
-                        ${systemicHtml}
-                    </div>
-                </div>
-                ` : ''}
-                
-                ${country.lastUpdated ? `
-                <div class="update-time">
-                    ⏰ 最后更新：${country.lastUpdated}
-                </div>
-                ` : ''}
-            `;
-
-            document.getElementById('sidebarContent').innerHTML = html;
         }
 
         // ============================================
@@ -816,7 +724,7 @@
         }
 
         // ============================================
-        // 6. 加载指示器控制
+        // 6. 加载指示器
         // ============================================
         function showLoading(show) {
             const indicator = document.getElementById('loadingIndicator');
@@ -832,7 +740,7 @@
         // ============================================
         window.addEventListener('load', loadPolicyData);
 
-        // 用于外部调用的 API（可选）
+        // 外部 API
         window.updatePolicyData = function(newData) {
             countryPolicyData = newData;
             console.log("✓ 数据已更新，重新初始化地图");
