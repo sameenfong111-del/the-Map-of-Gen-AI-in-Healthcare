@@ -1,755 +1,260 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球生成式AI监管政策地图 | Global Gen AI Regulatory Policy Map</title>
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    <title>全球生成式AI（医疗健康）监管政策智库仪表盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-        }
-        
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-        
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 420px;
-            height: 100vh;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-            z-index: 1000;
-            border-right: 1px solid #e2e8f0;
-        }
-        
-        .sidebar-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 24px;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-        
-        .sidebar-content {
-            padding: 24px;
-        }
-        
-        .country-title {
-            font-size: 28px;
-            font-weight: 800;
-            color: #1a202c;
-            margin-bottom: 12px;
-        }
-        
-        .severity-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 20px;
-            letter-spacing: 0.5px;
-        }
-        
-        .severity-strict {
-            background: #fee;
-            color: #c53030;
-        }
-        
-        .severity-moderate {
-            background: #fef3c7;
-            color: #b45309;
-        }
-        
-        .severity-light {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .frameworks-section {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border-left: 4px solid #667eea;
-            font-size: 13px;
-            color: #2d3748;
-            line-height: 1.6;
-        }
-        
-        .frameworks-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #667eea;
-            margin-bottom: 6px;
-            letter-spacing: 1px;
-        }
-        
-        .regulatory-layers {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .regulatory-layer {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border-left: 5px solid #667eea;
-            transition: all 0.3s ease;
-        }
-        
-        .regulatory-layer:hover {
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-            transform: translateX(4px);
-        }
-        
-        .layer-header {
-            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-            padding: 12px 14px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .layer-icon {
-            font-size: 18px;
-            min-width: 24px;
-        }
-        
-        .layer-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #2d3748;
-            flex: 1;
-        }
-        
-        .layer-number {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 24px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-right: 6px;
-        }
-        
-        .layer-content {
-            padding: 14px;
-            font-size: 13px;
-            color: #4a5568;
-            line-height: 1.6;
-            background: white;
-        }
-        
-        .layer-content-title {
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        
-        .layer-content-text {
-            font-size: 13px;
-            color: #4a5568;
-            line-height: 1.6;
-        }
-        
-        .compliance-checklist {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .compliance-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 8px;
-            background: #f7fafc;
-            border-radius: 6px;
-            border-left: 2px solid #667eea;
-        }
-        
-        .compliance-check {
-            color: #48bb78;
-            font-weight: 700;
-            margin-right: 8px;
-            min-width: 16px;
-            font-size: 14px;
-        }
-        
-        .compliance-text {
-            font-size: 12px;
-            color: #2d3748;
-            line-height: 1.5;
-        }
-        
-        .update-time {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-        }
-        
-        .welcome-message {
-            text-align: center;
-            color: #718096;
-            padding: 40px 24px;
-        }
-        
-        .welcome-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 16px;
-        }
-        
-        .welcome-text {
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .map-container {
-            margin-left: 420px;
-            height: 100vh;
-            width: calc(100% - 420px);
-        }
-        
-        .info-popup {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .info-popup-title {
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 6px;
-        }
-        
-        .info-popup-content {
-            font-size: 12px;
-            color: #4a5568;
-        }
-        
-        .leaflet-control-attribution {
-            background: rgba(255, 255, 255, 0.8) !important;
-        }
-        
-        .sidebar::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .sidebar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
-            border-radius: 4px;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0;
-        }
-        
-        .loading-indicator {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            z-index: 2000;
-            text-align: center;
-        }
-        
-        .loading-indicator.show {
-            display: block;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: 50vh;
-                box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
-            }
-            
-            .map-container {
-                margin-left: 0;
-                width: 100%;
-                height: 50vh;
-            }
-        }
+        html, body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        #map { height: calc(100vh - 80px); width: 100%; }
+        .legend { background: white; padding: 10px; line-height: 18px; color: #333; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; border-radius: 4px; }
     </style>
 </head>
-<body>
-    <!-- Loading Indicator -->
-    <div class="loading-indicator" id="loadingIndicator">
-        <div class="spinner"></div>
-        <p>正在加载政策数据...</p>
-    </div>
+<body class="bg-gray-900 text-gray-100 flex flex-col h-screen">
 
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                🌍 Gen AI 监管政策地图
-            </div>
-            <div class="sidebar-content" id="sidebarContent">
-                <div class="welcome-message">
-                    <div class="welcome-title">欢迎使用</div>
-                    <div class="welcome-text">点击地图上的国家，查看该国 AI 监管政策详情</div>
-                </div>
-            </div>
+    <header class="bg-gray-800 border-b border-gray-700 h-20 flex items-center justify-between px-6 shrink-0">
+        <div>
+            <h1 class="text-xl font-bold text-blue-400">全球生成式人工智能（Gen AI）医疗监管政策可视化地图</h1>
+            <p class="text-xs text-gray-400 mt-1">Law, Science, and Technology 比较法学研究学术作品集</p>
         </div>
+        <div class="text-right">
+            <span class="text-xs bg-blue-900/50 text-blue-300 border border-blue-700 px-3 py-1 rounded-full font-mono">Data Flow: Integrated</span>
+        </div>
+    </header>
+
+    <main class="flex flex-1 overflow-hidden">
         
-        <!-- Map -->
-        <div id="map" class="map-container"></div>
-    </div>
+        <section class="w-1/3 bg-gray-800 border-r border-gray-700 flex flex-col overflow-y-auto p-6" id="sidebar">
+            <div id="default-hint" class="text-center my-auto text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                <p class="text-lg font-medium">请点击右侧地图上的大国</p>
+                <p class="text-sm mt-1">即可华丽调阅跨国多层级 AI 规制条文分析</p>
+            </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+            <div id="content-panel" class="hidden space-y-6">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold text-white tracking-wide" id="country-name">国家</h2>
+                        <span id="risk-badge" class="px-3 py-1 rounded text-xs font-bold">监管级别</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2" id="update-date">最后更新: --</p>
+                </div>
 
+                <div class="border-t border-gray-700 pt-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">核心规制法案</h3>
+                    <div id="frameworks-list" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+
+                <div class="space-y-4 border-t border-gray-700 pt-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">深度法学规制层级分析</h3>
+                    
+                    <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50">
+                        <h4 class="text-sm font-bold text-blue-400 flex items-center">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>1. 基础数据隐私层 (Data Privacy)
+                        </h4>
+                        <p class="text-sm text-gray-300 mt-2 leading-relaxed" id="level-privacy"></p>
+                    </div>
+
+                    <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50">
+                        <h4 class="text-sm font-bold text-orange-400 flex items-center">
+                            <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>2. 产品准入与技术合规层 (Technical Compliance)
+                        </h4>
+                        <p class="text-sm text-gray-300 mt-2 leading-relaxed" id="level-technical"></p>
+                    </div>
+
+                    <div class="bg-blue-950/40 p-4 rounded-lg border border-blue-800/60">
+                        <h4 class="text-sm font-bold text-pink-400 flex items-center">
+                            <span class="w-2 h-2 bg-pink-500 rounded-full mr-2"></span>3. 系统性风险治理层 (Systemic Risk Governance) ⭐ 课题核心
+                        </h4>
+                        <p class="text-sm text-blue-100 mt-2 font-medium leading-relaxed" id="level-systemic"></p>
+                    </div>
+
+                    <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50">
+                        <h4 class="text-sm font-bold text-green-400 flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>4. 伦理与软法指南层 (Soft Law & Ethics)
+                        </h4>
+                        <p class="text-sm text-gray-300 mt-2 leading-relaxed" id="level-softlaw"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex-1 relative">
+            <div id="map"></div>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ============================================
-        // 1. 全局变量
-        // ============================================
-        let countryPolicyData = [];
+        // 硬核多层级大国规制数据库直接集成（免去外部读取失败的风险）
+        const countryPolicyData = [
+          {
+            "country": "France", "iso_code": "FRA", "status": "严格 (Strict)", "color": "#ef4444",
+            "frameworks": ["欧盟人工智能法案 (EU AI Act)", "欧盟数字服务法案 (EU DSA)", "通用数据保护条例 (GDPR)"],
+            "levels": {
+              "data_privacy": "极其严格。受 GDPR 铁律管辖，医疗健康数据属于特殊类别数据（Art. 9），生成式 AI 训练和临床应用必须经过严格的去隐私化、合规洗白或患者明示同意。",
+              "technical_compliance": "高标准高门槛。AI Act 落地后，医疗领域的生成式 AI 多数被归为『高风险 AI 系统』，强制要求实施全生命周期的风险管理、对抗测试以及生成内容强制数字水印。",
+              "systemic_risk": "【核心纽带 DSA Art. 34/35】。重点规制医疗虚假信息传播对公共健康的系统性风险。超大型平台必须定期评估算法推荐导致的网络健康谣言传播，并接受第三方独立审计。",
+              "soft_law": "由法国国家数字伦理委员会（CNPEN）定期发布针对医疗机器人、问诊大模型的道德边界倡议。"
+            }, "update_date": "2026-05"
+          },
+          {
+            "country": "Germany", "iso_code": "DEU", "status": "严格 (Strict)", "color": "#ef4444",
+            "frameworks": ["欧盟人工智能法案 (EU AI Act)", "GDPR", "德国数字医疗保健法案 (DVG)"],
+            "levels": {
+              "data_privacy": "顶格监管。除 GDPR 外，各联邦州设有高度独立的隐私官。数字处方药应用（DiGA）的 AI 模块必须通过联邦药品与医疗器械局（BfArM）极其严苛的数据安全测试。",
+              "technical_compliance": "强力介入。针对临床决策支持（CDS）的生成式 AI 系统，必须符合医疗器械法规（MDR）标准，算法必须具备强可解释性（Explainable AI），严禁黑箱操作。",
+              "systemic_risk": "配合欧盟整体战略。高度关注大模型生成错误医学知识（幻觉）引发的社会系统性信任危机，大力推动大模型底层训练数据的版权与科学合规性审查。",
+              "soft_law": "德国伦理委员会发布多份报告，坚持在 AI 医疗交互中保持『人类终极控制（Human-in-the-loop）』原则。"
+            }, "update_date": "2026-05"
+          },
+          {
+            "country": "United States", "iso_code": "USA", "status": "温和 (Moderate)", "color": "#f97316",
+            "frameworks": ["FDA 医用软件指南", "白宫 AI 行政令 14110", "医疗保险可携性与责任法案 (HIPAA)"],
+            "levels": {
+              "data_privacy": "行业专规治理。主要受 HIPAA 法案管辖，保护受监管的电子健康记录（PHI）。但对于消费级或非传统医疗机构的健康 AI 应用，存在一定的隐私监管盲区。",
+              "technical_compliance": "药监局强力介入。FDA 建立了适应性算法和基于软件的医疗器械（SaMD）全周期监管框架，对生成式 AI 在医学影像和病历自动生成中的应用实施临床验证审查。",
+              "systemic_risk": "防范基础核爆风险。根据白宫 AI 行政令，重点防范生成式 AI 降低生物安全门槛的风险（如利用 AI 恶意合成新型致命病毒），并要求对大型医疗模型进行强制性红队测试。",
+              "soft_law": "高度依赖行业自律。依赖白宫《AI 权利法案蓝图》以及各大医疗科技巨头自愿签署的安全合规承诺。"
+            }, "update_date": "2026-05"
+          },
+          {
+            "country": "China", "iso_code": "CHN", "status": "严格 (Strict)", "color": "#ef4444",
+            "frameworks": ["《生成式人工智能服务管理暂行办法》", "《深度合成管理规定》", "《个人信息保护法》(PIPL)"],
+            "levels": {
+              "data_privacy": "严密保护。依据 PIPL 法律，医疗健康数据被定性为『敏感个人信息』，AI 研发企业在处理前必须取得个人的单独同意，并进行国家级安全影响评估。",
+              "technical_compliance": "前置审查制。提供医疗深度合成或生成式服务的算法，必须在国家网信办进行算法备案。AI 生成的医学咨询、报告等内容必须进行显著的显式标识（防伪防谣水印）。",
+              "systemic_risk": "社会治理与公共安全防范。高度重视内容安全与社会秩序。强制要求生成式 AI 的训练数据源具有合法性，生成的医学信息必须准确可靠，防止算法偏见和虚假有害医学叙事大范围扩散。",
+              "soft_law": "科技部等部门发布《科技伦理审查办法（试行）》，医疗 AI 项目上线前需通过医疗机构及科研单位内部的科技伦理委员会审查。"
+            }, "update_date": "2026-05"
+          },
+          {
+            "country": "Australia", "iso_code": "AUS", "status": "温和 (Moderate)", "color": "#f97316",
+            "frameworks": ["TGA 医疗器械法规", "澳大利亚隐私法 (Privacy Act 1988)"],
+            "levels": {
+              "data_privacy": "正在大力收紧。根据《隐私法 1988》管辖健康隐私原则（HPPs），目前正酝酿针对数字大健康时代的大幅修订，强化个人对健康数据的控制权。",
+              "technical_compliance": "药监局（TGA）主导。将机器学习医用软件（AsMD）纳入规范。TGA 目前正紧跟国际协调化（Harmonisation）步伐，探索对自动更新、不断自我学习的适应性算法实施动态准入。",
+              "systemic_risk": "过渡与公共咨询阶段。目前联邦政府和产业部正就是否针对医疗、法律等高风险行业引入类似欧洲的『强制性 AI 系统风险管理与审计义务』进行广泛的社会公开咨询。",
+              "soft_law": "现阶段主要依赖国家发布的八项《人工智能伦理原则》（AI Ethics Principles），用柔性标准引导医院和研发企业。"
+            }, "update_date": "2026-05"
+          }
+        ];
+
         let map = null;
-        let markersLayer = L.featureGroup();
+        let geoJsonLayer = null;
 
-        // 国家坐标映射
-        const countryCoordinates = {
-            "US": [39.8283, -98.5795],
-            "United States": [39.8283, -98.5795],
-            "CN": [35.8617, 104.1954],
-            "China": [35.8617, 104.1954],
-            "FR": [46.2276, 2.2137],
-            "France": [46.2276, 2.2137],
-            "GB": [55.3781, -3.4360],
-            "UK": [55.3781, -3.4360],
-            "United Kingdom": [55.3781, -3.4360],
-            "SG": [1.3521, 103.8198],
-            "Singapore": [1.3521, 103.8198],
-            "DE": [51.1657, 10.4515],
-            "Germany": [51.1657, 10.4515],
-            "JP": [36.2048, 138.2529],
-            "Japan": [36.2048, 138.2529],
-            "CA": [56.1304, -106.3468],
-            "Canada": [56.1304, -106.3468],
-            "BR": [-14.2350, -51.9253],
-            "Brazil": [-14.2350, -51.9253],
-            "AU": [-25.2744, 133.7751],
-            "Australia": [-25.2744, 133.7751],
-            "AE": [23.4241, 53.8478],
-            "UAE": [23.4241, 53.8478],
-            "United Arab Emirates": [23.4241, 53.8478]
-        };
-
-        const severityColors = {
-            "Strict": "#dc2626",
-            "严格": "#dc2626",
-            "Moderate": "#f59e0b",
-            "温和": "#f59e0b",
-            "Light": "#10b981",
-            "宽松": "#10b981"
-        };
-
-        // ============================================
-        // 2. 异步加载 JSON 文件
-        // ============================================
-        async function loadPolicyData() {
-            showLoading(true);
-            try {
-                const response = await fetch('ai_policy_data.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                countryPolicyData = await response.json();
-                console.log("✓ 数据加载成功 (从 ai_policy_data.json):", countryPolicyData);
-                
-            } catch (error) {
-                console.warn("⚠ 加载 ai_policy_data.json 失败，使用默认内置数据:", error);
-                countryPolicyData = getDefaultPolicyData();
-            }
+        // 初始化地图
+        function initializeMap() {
+            map = L.map('map').setView([20, 0], 2);
             
-            showLoading(false);
-            initMapWithData();
-        }
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
 
-        // ============================================
-        // 默认数据（备用兜底）
-        // ============================================
-        function getDefaultPolicyData() {
-            return [
-                {
-                    "country": "United States",
-                    "countryCode": "US",
-                    "severity": "Light",
-                    "severityCN": "宽松",
-                    "mainLaws": "Executive Order on Safe, Secure, and Trustworthy Development and Use of Artificial Intelligence",
-                    "frameworks": ["Executive Order 14110", "NIST AI RMF", "Voluntary AI Principles"],
-                    "coreRegulation": "Voluntary framework, sector-specific approach",
-                    "levels": {
-                        "data_privacy": "主要依赖于现有的 GDPR、CCPA 等法规。无统一的联邦 AI 隐私法，但美国消费者隐私权法（如 CCPA）涵盖 AI 应用中的数据使用。重点关注数据持有者和使用者的责任。",
-                        "technical_compliance": "美国倾向于自愿性框架而非强制合规。NIST AI Risk Management Framework 提供指导，但无法律强制力。企业需遵守行业特定标准（医疗、金融等）。",
-                        "systemic_risk": "美国对大型 AI 模型（如 GPT-4）的系统风险关注度上升。Executive Order 14110 要求对 AI 系统进行风险评估，但未形成强制的监管框架。政府倾向于通过 FTC 的反垄断执法来管理大科技公司的 AI 应用。",
-                        "soft_law": "美国强调行业自律和伦理准则。多个组织（如 AI Now Institute、Partnership on AI）制定伦理指南。技术社群推崇责任 AI、可解释性、公平性等原则，但缺乏法律约束力。"
-                    },
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": false }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": false },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": false }
-                    ],
-                    "lastUpdated": "2025-02-15",
-                    "update_date": "2025-02-15",
-                    "description": "Sector-specific regulation with emphasis on innovation"
-                },
-                {
-                    "country": "China",
-                    "countryCode": "CN",
-                    "severity": "Strict",
-                    "severityCN": "严格",
-                    "mainLaws": "Generative AI Service Management Interim Measures",
-                    "frameworks": ["《生成式人工智能服务管理暂行办法》", "《互联网信息服务算法推荐管理规定》", "《网络安全法》"],
-                    "coreRegulation": "Content control, algorithm governance, data sovereignty",
-                    "levels": {
-                        "data_privacy": "中国的《个人信息保护法》（PIPL）等同于中国版 GDPR。AI 系统必须遵守严格的数据本地化要求、用户同意机制和数据安全审查。生成式 AI 服务需获得网信办批准，内容必须通过审核。",
-                        "technical_compliance": "中国强制要求 AI 生成内容进行身份验证、数据隐私加密和水印标记。生成式 AI 服务需通过网络安全审查。企业需定期进行合规检查，向政府报告使用情况。",
-                        "systemic_risk": "中国对 AI 系统的系统性风险管理极其严格。要求对所有生成式 AI 模型进行预训练和微调时的安全评估。超大型模型需通过国家级审查，政府定期进行系统性社会风险评估。重点防范意识形态风险和信息泄露。",
-                        "soft_law": "中国遵循政府主导的伦理框架。《新一代人工智能伦理规范》由中国科学院等机构发布，强调人类主导、安全可靠、公平透明等原则。行业自律组织（如中国互联网协会）制定指南，但最终由政府监管部门主导。"
-                    },
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": true },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": true }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": true }
-                    ],
-                    "lastUpdated": "2025-03-10",
-                    "update_date": "2025-03-10",
-                    "description": "Comprehensive regulation with focus on content security and state control"
-                },
-                {
-                    "country": "France",
-                    "countryCode": "FR",
-                    "severity": "Strict",
-                    "severityCN": "严格",
-                    "mainLaws": "EU AI Act, Digital Services Act (DSA)",
-                    "frameworks": ["EU AI Act (2024)", "Digital Services Act", "GDPR"],
-                    "coreRegulation": "Risk-based approach, transparency, high-risk system regulation",
-                    "levels": {
-                        "data_privacy": "EU GDPR 是世界上最严格的数据保护法。AI 系统必须获得用户明确同意，处理敏感数据需进行隐私影响评估。EU AI Act 进一步要求对高风险 AI 进行数据治理、质量管理和偏见检测。",
-                        "technical_compliance": "EU AI Act 将 AI 系统分为四个风险等级（禁止、高风险、有限风险、最小风险）。高风险系统需通过合规性评估、CE 标记和文档审查。强制要求可解释性、人工监督、用户知情权和系统文件保存。",
-                        "systemic_risk": "EU DSA 要求大型在线平台定期进行系统性民主与安全风险评估，包括内容审核、算法推荐的社会影响、儿童保护等。AI 系统需评估对言论自由、隐私、消费者权益等的风险，建立风险缓解措施。",
-                        "soft_law": "欧盟强调透明度和人类中心原则。根据《欧盟 AI 伦理指南》，AI 系统应满足人类主导、技术鲁棒性、隐私和数据治理、透明性等要求。建立独立审计机制，鼓励社会各界参与 AI 治理。"
-                    },
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": true },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": true }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": true }
-                    ],
-                    "lastUpdated": "2024-12-01",
-                    "update_date": "2024-12-01",
-                    "description": "Risk-based compliance framework with mandatory transparency and audits"
-                },
-                {
-                    "country": "United Kingdom",
-                    "countryCode": "GB",
-                    "severity": "Moderate",
-                    "severityCN": "温和",
-                    "mainLaws": "AI Bill (Draft), pro-innovation regulation framework",
-                    "frameworks": ["AI Bill", "Data Protection Act 2018", "Online Safety Bill"],
-                    "coreRegulation": "Flexible principles-based approach, sector guidance",
-                    "levels": {
-                        "data_privacy": "英国的《数据保护法 2018》与 GDPR 对齐。但英国强调灵活性，允许各行业制定自己的隐私标准。AI 系统需满足数据使用的合法性、目的限制和数据最小化原则。",
-                        "technical_compliance": "英国采用原则-主导型规制（Principles-led regulation）。监管机构（如 ICO、CMA）发布指导文件，但不强制特定技术实现。企业需遵循公平性、透明性、问责制原则，但具体方式灵活。",
-                        "systemic_risk": "英国对系统性 AI 风险的关注度不及欧盟。Online Safety Bill 主要针对社交媒体平台的内容审核，而非 AI 系统本身。政府倾向于企业自管和轻度监管，以避免创新受阻。",
-                        "soft_law": "英国重视行业指导和最佳实践。Alan Turing Institute 等机构发布 AI 伦理框架，强调人类自主权、系统完整性、隐私与安全。行业组织制定部门特定指南（金融、医疗等），但政府不强制执行。"
-                    },
-                    "technicalCompliance": [
-                        { "requirement": "Watermarking", "status": false },
-                        { "requirement": "Model Transparency", "status": true },
-                        { "requirement": "Subliminal Manipulation Control", "status": false }
-                    ],
-                    "systemicRiskGovernance": [
-                        { "requirement": "GPAI Risk Assessment", "status": true },
-                        { "requirement": "Large Platform Governance", "status": true },
-                        { "requirement": "Democratic Safety Audit", "status": false }
-                    ],
-                    "lastUpdated": "2025-01-20",
-                    "update_date": "2025-01-20",
-                    "description": "Principle-based regulation encouraging innovation with safety guardrails"
-                }
-            ];
-        }
-
-        // ============================================
-        // 3. 当点击国家时更新侧边栏
-        // ============================================
-        function updateSidebar(countryData) {
-            if (!countryData) return;
-
-            const countryName = countryData.country || countryData.countryCode || '';
-            const severity = countryData.severity || countryData.severityCN || "Moderate";
-            const severityClass = `severity-${severity.toLowerCase()}`;
-            
-            // 获取四层数据
-            const levels = countryData.levels || {};
-            const frameworks = (countryData.frameworks || []).join(', ');
-
-            // 构建四层规制框架 HTML
-            const layersHtml = `
-                <!-- 第一层：数据隐私层 -->
-                <div class="regulatory-layer">
-                    <div class="layer-header">
-                        <span class="layer-number">1</span>
-                        <span class="layer-icon">🔐</span>
-                        <span class="layer-title">数据隐私层 (Data Privacy)</span>
-                    </div>
-                    <div class="layer-content">
-                        <div class="layer-content-text">${levels.data_privacy || '暂无信息'}</div>
-                    </div>
-                </div>
-
-                <!-- 第二层：技术合规层 -->
-                <div class="regulatory-layer">
-                    <div class="layer-header">
-                        <span class="layer-number">2</span>
-                        <span class="layer-icon">⚙️</span>
-                        <span class="layer-title">技术合规层 (Technical Compliance)</span>
-                    </div>
-                    <div class="layer-content">
-                        <div class="layer-content-text">${levels.technical_compliance || '暂无信息'}</div>
-                    </div>
-                </div>
-
-                <!-- 第三层：系统性风险治理层 -->
-                <div class="regulatory-layer">
-                    <div class="layer-header">
-                        <span class="layer-number">3</span>
-                        <span class="layer-icon">🛡️</span>
-                        <span class="layer-title">系统性风险治理层 (Systemic Risk)</span>
-                    </div>
-                    <div class="layer-content">
-                        <div class="layer-content-text">${levels.systemic_risk || '暂无信息'}</div>
-                    </div>
-                </div>
-
-                <!-- 第四层：伦理与软法指南层 -->
-                <div class="regulatory-layer">
-                    <div class="layer-header">
-                        <span class="layer-number">4</span>
-                        <span class="layer-icon">📜</span>
-                        <span class="layer-title">伦理与软法指南层 (Soft Law)</span>
-                    </div>
-                    <div class="layer-content">
-                        <div class="layer-content-text">${levels.soft_law || '暂无信息'}</div>
-                    </div>
-                </div>
-            `;
-
-            const html = `
-                <div class="country-title">${countryName}</div>
-                <div class="severity-badge ${severityClass}">
-                    📊 监管等级：${severity}
-                </div>
-                
-                <div class="frameworks-section">
-                    <div class="frameworks-label">📋 核心法案框架</div>
-                    <div id="frameworks-list">${frameworks || 'N/A'}</div>
-                </div>
-                
-                <div class="regulatory-layers">
-                    ${layersHtml}
-                </div>
-                
-                <div class="update-time">
-                    ⏰ 最后更新：${countryData.lastUpdated || countryData.update_date || 'N/A'}
-                </div>
-            `;
-
-            document.getElementById('sidebarContent').innerHTML = html;
-        }
-
-        // ============================================
-        // 4. 初始化地图
-        // ============================================
-        function initMapWithData() {
-            if (!map) {
-                map = L.map('map').setView([20, 0], 2);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                    attribution: '© OpenStreetMap contributors © CARTO',
-                    maxZoom: 19,
-                    subdomains: 'abcd'
-                }).addTo(map);
-            }
-
-            markersLayer.clearLayers();
-
-            countryPolicyData.forEach((country) => {
-                const countryName = country.country || country.countryCode || '';
-                const coords = countryCoordinates[countryName] || 
-                              countryCoordinates[country.countryCode] || 
-                              null;
-
-                if (!coords) {
-                    console.warn(`⚠ 找不到坐标: ${countryName}`);
-                    return;
-                }
-
-                const severity = country.severity || country.severityCN || "Moderate";
-                const color = severityColors[severity] || "#f59e0b";
-
-                const circle = L.circleMarker(coords, {
-                    radius: 12,
-                    fillColor: color,
-                    color: color,
-                    weight: 2,
-                    opacity: 0.8,
-                    fillOpacity: 0.7
-                }).addTo(markersLayer);
-
-                const popupContent = `
-                    <div class="info-popup">
-                        <div class="info-popup-title">${countryName}</div>
-                        <div class="info-popup-content">
-                            <strong>等级：</strong>${country.severityCN || country.severity}<br>
-                            <strong>法案：</strong>${(country.mainLaws || '').substring(0, 40)}...
-                        </div>
-                    </div>
-                `;
-                circle.bindPopup(popupContent, { maxWidth: 250 });
-
-                circle.on('click', () => {
-                    updateSidebar(country);
+            // 加载 GeoJSON 国家边界
+            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+                .then(response => response.json())
+                .then(geoData => {
+                    geoJsonLayer = L.geoJson(geoData, {
+                        style: function(feature) {
+                            const countryName = feature.properties.name;
+                            const match = countryPolicyData.find(item => {
+                                if(item.country === countryName) return true;
+                                if(countryName === "United States of America" && item.country === "United States") return true;
+                                return false;
+                            });
+                            return {
+                                fillColor: match ? match.color : '#374151',
+                                weight: 1.5,
+                                opacity: 1,
+                                color: '#4B5563',
+                                fillOpacity: match ? 0.65 : 0.2
+                            };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            layer.on({
+                                mouseover: function(e) {
+                                    e.target.setStyle({ fillOpacity: 0.8, weight: 2, color: '#9CA3AF' });
+                                },
+                                mouseout: function(e) {
+                                    const countryName = feature.properties.name;
+                                    const match = countryPolicyData.find(item => item.country === countryName || (countryName === "United States of America" && item.country === "United States"));
+                                    e.target.setStyle({ fillOpacity: match ? 0.65 : 0.2, weight: 1.5, color: '#4B5563' });
+                                },
+                                click: function(e) {
+                                    let name = feature.properties.name;
+                                    if(name === "United States of America") name = "United States";
+                                    showPolicyDetails(name);
+                                    map.flyTo(e.latlng, 3);
+                                }
+                            });
+                        }
+                    }).addTo(map);
                 });
-            });
 
-            markersLayer.addTo(map);
             addLegend();
-
-            console.log(`✓ 地图已初始化，共有 ${countryPolicyData.length} 个国家`);
         }
 
-        // ============================================
-        // 5. 添加图例
-        // ============================================
-        function addLegend() {
-            const legend = L.control({ position: 'bottomright' });
+        function showPolicyDetails(countryName) {
+            const data = countryPolicyData.find(item => item.country === countryName);
             
-            legend.onAdd = function() {
-                const div = L.DomUtil.create('div', 'bg-white p-3 rounded-lg shadow-lg text-sm');
-                div.innerHTML = `
-                    <div style="font-weight: 700; margin-bottom: 8px;">监管等级</div>
-                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #dc2626; border-radius: 50%; margin-right: 8px;"></span>
-                        <span>严格 (Strict)</span>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></span>
-                        <span>温和 (Moderate)</span>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <span style="display: inline-block; width: 12px; height: 12px; background: #10b981; border-radius: 50%; margin-right: 8px;"></span>
-                        <span>宽松 (Light)</span>
-                    </div>
-                `;
+            const hint = document.getElementById('default-hint');
+            const panel = document.getElementById('content-panel');
+            
+            if (data) {
+                hint.classList.add('hidden');
+                panel.classList.remove('hidden');
+                
+                document.getElementById('country-name').innerText = data.country;
+                document.getElementById('update-date').innerText = `学术追踪版本最后更新: ${data.update_date}`;
+                
+                const badge = document.getElementById('risk-badge');
+                badge.innerText = data.status;
+                if(data.country === 'China' || data.country === 'France' || data.country === 'Germany') {
+                    badge.className = "px-3 py-1 rounded text-xs font-bold bg-red-900 text-red-200 border border-red-700";
+                } else {
+                    badge.className = "px-3 py-1 rounded text-xs font-bold bg-orange-900 text-orange-200 border border-orange-700";
+                }
+
+                const frameworksDiv = document.getElementById('frameworks-list');
+                frameworksDiv.innerHTML = '';
+                data.frameworks.forEach(f => {
+                    const span = document.createElement('span');
+                    span.className = "text-xs bg-gray-700 text-gray-200 px-2 py-1 rounded border border-gray-600";
+                    span.innerText = f;
+                    frameworksDiv.appendChild(span);
+                });
+
+                document.getElementById('level-privacy').innerText = data.levels.data_privacy;
+                document.getElementById('level-technical').innerText = data.levels.technical_compliance;
+                document.getElementById('level-systemic').innerText = data.levels.systemic_risk;
+                document.getElementById('level-softlaw').innerText = data.levels.soft_law;
+            } else {
+                hint.classList.remove('hidden');
+                panel.classList.add('hidden');
+                hint.innerHTML = `<p class="text-gray-400">📊 <b>${countryName}</b> 的数据正在进行法学审查与结构化清洗中，敬请期待！</p>`;
+            }
+        }
+
+        function addLegend() {
+            const legend = L.control({position: 'bottomright'});
+            legend.onAdd = function (map) {
+                const div = L.DomUtil.create('div', 'legend');
+                div.innerHTML += '<h4 style="margin:0 0 5px;font-weight:bold;font-size:12px;">监管严厉度</h4>';
+                div.innerHTML += '<i style="background:#ef4444"></i> 严格 (Strict)<br>';
+                div.innerHTML += '<i style="background:#f97316"></i> 温和 (Moderate)<br>';
+                div.innerHTML += '<i style="background:#374151"></i> 暂未收录<br>';
                 return div;
             };
-            
             legend.addTo(map);
         }
 
-        // ============================================
-        // 6. 加载指示器
-        // ============================================
-        function showLoading(show) {
-            const indicator = document.getElementById('loadingIndicator');
-            if (show) {
-                indicator.classList.add('show');
-            } else {
-                indicator.classList.remove('show');
-            }
-        }
-
-        // ============================================
-        // 7. 页面加载时执行
-        // ============================================
-        window.addEventListener('load', loadPolicyData);
-
-        // 外部 API
-        window.updatePolicyData = function(newData) {
-            countryPolicyData = newData;
-            console.log("✓ 数据已更新，重新初始化地图");
-            initMapWithData();
-        };
-
-        window.getPolicyData = function() {
-            return countryPolicyData;
-        };
+        window.addEventListener('load', initializeMap);
     </script>
 </body>
 </html>
