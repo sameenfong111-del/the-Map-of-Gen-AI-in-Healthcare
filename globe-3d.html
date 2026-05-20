@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Map of Gen AI & Planetary Health - 3D Globe</title>
+    <script src="https://unpkg.com/three@r128/build/three.min.js"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #040408;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        }
+        #globe-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .control-panel {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 850px;
+            background: rgba(10, 10, 20, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .title {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 2px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #8e92a0;
+        }
+        .legend-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        .glow-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .error-message {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 100;
+            display: none;
+        }
+        .loading-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(10, 10, 20, 0.8);
+            color: #10b981;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            z-index: 100;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div id="globe-canvas"></div>
+
+<div class="error-message" id="error-msg"></div>
+
+<div class="loading-indicator" id="loading-indicator">
+    ⏳ Loading 3D Globe...
+</div>
+
+<div class="control-panel">
+    <div class="title">REGULATORY KNOWLEDGE PLANET</div>
+    <div class="legend">
+        <div class="legend-item">
+            <span class="glow-dot" style="background: #ff3b30; box-shadow: 0 0 10px #ff3b30;"></span> 
+            High Accountability Gap
+        </div>
+        <div class="legend-item">
+            <span class="glow-dot" style="background: #ffcc00; box-shadow: 0 0 10px #ffcc00;"></span> 
+            Evolving Compliance
+        </div>
+        <div class="legend-item">
+            <span class="glow-dot" style="background: #00e5ff; box-shadow: 0 0 10px #00e5ff;"></span> 
+            Risk Mitigation Nodes
+        </div>
+    </div>
+</div>
+
+<script>
+    // Error handling utility
+    function showError(message) {
+        console.error('❌', message);
+        const errorDiv = document.getElementById('error-msg');
+        errorDiv.innerText = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => { errorDiv.style.display = 'none'; }, 5000);
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-indicator').style.display = 'none';
+    }
+
+    // Initialize Globe with error handling
+    try {
+        // Create 3D Globe instance
+        const myGlobe = Globe()
+            (document.getElementById('globe-canvas'))
+            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+            .pointLat('lat')
+            .pointLng('lng')
+            .pointColor('color')
+            .pointAltitude('altitude')
+            .pointRadius('radius')
+            .pointsMerge(false)
+            .pointLabel(d => `
+                <div style="background: rgba(5,5,10,0.85); padding: 10px; border: 1px solid ${d.color}; border-radius: 8px; color: #fff; font-size:12px; max-width: 200px;">
+                    <b style="color:${d.color};">${d.name}</b><br/>
+                    <small>Status: ${d.status}</small><br/>
+                    <small>Method: ${d.method}</small>
+                </div>
+            `);
+
+        // Load data with error handling
+        fetch('data.json')
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load data.json`);
+                return res.json();
+            })
+            .then(rawData => {
+                if (!Array.isArray(rawData) || rawData.length === 0) {
+                    throw new Error('Invalid or empty data format');
+                }
+                
+                const globeData = rawData.map(item => ({
+                    lat: item.lat,
+                    lng: item.lng,
+                    name: item.location_name,
+                    status: item.latest_status,
+                    method: item.evaluation_method || "Bayesian Inference",
+                    color: item.color || "#00e5ff",
+                    radius: 0.25,
+                    altitude: 0.02 + Math.random() * 0.03
+                }));
+                
+                myGlobe.pointsData(globeData);
+                console.log(`✅ Loaded ${globeData.length} governance nodes`);
+                hideLoading();
+            })
+            .catch(error => {
+                showError(`Data Load Error: ${error.message}`);
+                console.warn('Proceeding with empty globe...');
+                hideLoading();
+            });
+
+        // Camera and controls
+        const controls = myGlobe.controls();
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.enableZoom = true;
+
+        console.log('🌍 3D Globe initialized successfully');
+    } catch (error) {
+        showError(`Globe Initialization Error: ${error.message}`);
+        console.error('Fatal error:', error);
+    }
+</script>
+</body>
+</html>
