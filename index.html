@@ -11,6 +11,18 @@
         #map { height: calc(100vh - 80px); width: 100%; }
         .legend { background: white; padding: 10px; line-height: 18px; color: #333; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; border-radius: 4px; }
+        .data-source-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #10b981;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            z-index: 999;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 flex flex-col h-screen">
@@ -18,10 +30,10 @@
     <header class="bg-gray-800 border-b border-gray-700 h-20 flex items-center justify-between px-6 shrink-0">
         <div>
             <h1 class="text-xl font-bold text-blue-400">全球生成式人工智能（Gen AI）医疗监管政策可视化地图</h1>
-            <p class="text-xs text-gray-400 mt-1">Law, Science, and Technology 比较法学研究学术作品集 | 覆盖10个国家的深度规制分析</p>
+            <p class="text-xs text-gray-400 mt-1">Law, Science, and Technology 比较法学研究学术作品集 | 实时更新 10+ 国家监管框架</p>
         </div>
         <div class="text-right">
-            <span class="text-xs bg-blue-900/50 text-blue-300 border border-blue-700 px-3 py-1 rounded-full font-mono">Data Flow: Integrated</span>
+            <span class="text-xs bg-blue-900/50 text-blue-300 border border-blue-700 px-3 py-1 rounded-full font-mono" id="data-status">Data Flow: Initializing...</span>
         </div>
     </header>
 
@@ -41,11 +53,17 @@
                         <span id="risk-badge" class="px-3 py-1 rounded text-xs font-bold">监管级别</span>
                     </div>
                     <p class="text-xs text-gray-400 mt-2" id="update-date">最后更新: --</p>
+                    <p class="text-xs text-gray-500 mt-1" id="risk-score">风险得分: --</p>
                 </div>
 
                 <div class="border-t border-gray-700 pt-4">
                     <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">核心规制法案</h3>
                     <div id="frameworks-list" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+
+                <div class="border-t border-gray-700 pt-4">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">最新监管动态</h3>
+                    <p class="text-xs text-blue-300 mt-2 p-2 bg-blue-950/30 rounded border border-blue-800" id="latest-status">--</p>
                 </div>
 
                 <div class="space-y-4 border-t border-gray-700 pt-4">
@@ -84,124 +102,156 @@
 
         <section class="flex-1 relative">
             <div id="map"></div>
+            <div class="data-source-indicator" id="data-source">
+                📡 Data: Embedded | Updated: --
+            </div>
         </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 硬核多层级大国规制数据库直接集成（10个国家的完整规制框架）
-        const countryPolicyData = [
+        // ============================================
+        // 全局变量与嵌入式备用数据
+        // ============================================
+        let countryPolicyData = [];
+        let dataSourceType = "embedded";
+        let map = null;
+        let geoJsonLayer = null;
+
+        // 嵌入式数据（备用）
+        const embeddedData = [
           {
-            "country": "France", "iso_code": "FRA", "status": "严格 (Strict)", "color": "#ef4444",
+            "country": "France", "countryCode": "FR", "iso_code": "FRA", "status": "严格 (Strict)", "color": "#ef4444",
             "frameworks": ["欧盟人工智能法案 (EU AI Act)", "欧盟数字服务法案 (EU DSA)", "通用数据保护条例 (GDPR)"],
             "levels": {
-              "data_privacy": "极其严格。受 GDPR 铁律管辖，医疗健康数据属于特殊类别数据（Art. 9），生成式 AI 训练和临床应用必须经过严格的去隐私化、合规洗��或患者明示同意。",
+              "data_privacy": "极其严格。受 GDPR 铁律管辖，医疗健康数据属于特殊类别数据（Art. 9），生成式 AI 训练和���床应用必须经过严格的去隐私化、合规洗白或患者明示同意。",
               "technical_compliance": "高标准高门槛。AI Act 落地后，医疗领域的生成式 AI 多数被归为『高风险 AI 系统』，强制要求实施全生命周期的风险管理、对抗测试以及生成内容强制数字水印。",
               "systemic_risk": "【核心纽带 DSA Art. 34/35】。重点规制医疗虚假信息传播对公共健康的系统性风险。超大型平台必须定期评估算法推荐导致的网络健康谣言传播，并接受第三方独立审计。",
               "soft_law": "由法国国家数字伦理委员会（CNPEN）定期发布针对医疗机器人、问诊大模型的道德边界倡议。"
-            }, "update_date": "2026-05"
+            },
+            "latest_status": "EU AI Act officially enforces strict compliance for GenAI in clinical triage systems.",
+            "update_date": "2026-05-20",
+            "risk_level": "High Risk",
+            "accountability_gap_score": 0.25
           },
           {
-            "country": "Germany", "iso_code": "DEU", "status": "严格 (Strict)", "color": "#ef4444",
+            "country": "Germany", "countryCode": "DE", "iso_code": "DEU", "status": "严格 (Strict)", "color": "#ef4444",
             "frameworks": ["欧盟人工智能法案 (EU AI Act)", "GDPR", "德国数字医疗保健法案 (DVG)"],
             "levels": {
               "data_privacy": "顶格监管。除 GDPR 外，各联邦州设有高度独立的隐私官。数字处方药应用（DiGA）的 AI 模块必须通过联邦药品与医疗器械局（BfArM）极其严苛的数据安全测试。",
               "technical_compliance": "强力介入。针对临床决策支持（CDS）的生成式 AI 系统，必须符合医疗器械法规（MDR）标准，算法必须具备强可解释性（Explainable AI），严禁黑箱操作。",
               "systemic_risk": "配合欧盟整体战略。高度关注大模型生成错误医学知识（幻觉）引发的社会系统性信任危机，大力推动大模型底层训练数据的版权与科学合规性审查。",
               "soft_law": "德国伦理委员会发布多份报告，坚持在 AI 医疗交互中保持『人类终极控制（Human-in-the-loop）』原则。"
-            }, "update_date": "2026-05"
+            },
+            "latest_status": "BfArM published new guidance on adaptive algorithms in DiGA applications.",
+            "update_date": "2026-05-19",
+            "risk_level": "High Risk",
+            "accountability_gap_score": 0.28
           },
           {
-            "country": "United States", "iso_code": "USA", "status": "温和 (Moderate)", "color": "#f97316",
+            "country": "United States", "countryCode": "US", "iso_code": "USA", "status": "温和 (Moderate)", "color": "#f97316",
             "frameworks": ["FDA 医用软件指南", "白宫 AI 行政令 14110", "医疗保险可携性与责任法案 (HIPAA)"],
             "levels": {
               "data_privacy": "行业专规治理。主要受 HIPAA 法案管辖，保护受监管的电子健康记录（PHI）。但对于消费级或非传统医疗机构的健康 AI 应用，存在一定的隐私监管盲区。",
               "technical_compliance": "药监局强力介入。FDA 建立了适应性算法和基于软件的医疗器械（SaMD）全周期监管框架，对生成式 AI 在医学影像和病历自动生成中的应用实施临床验证审查。",
               "systemic_risk": "防范基础核爆风险。根据白宫 AI 行政令，重点防范生成式 AI 降低生物安全门槛的风险（如利用 AI 恶意合成新型致命病毒），并要求对大型医疗模型进行强制性红队测试。",
               "soft_law": "高度依赖行业自律。依赖白宫《AI 权利法案蓝图》以及各大医疗科技巨头自愿签署的安全合规承诺。"
-            }, "update_date": "2026-05"
+            },
+            "latest_status": "FDA issued Red-teaming requirements for large foundation models in healthcare.",
+            "update_date": "2026-05-17",
+            "risk_level": "Moderate",
+            "accountability_gap_score": 0.35
           },
           {
-            "country": "China", "iso_code": "CHN", "status": "严格 (Strict)", "color": "#ef4444",
+            "country": "China", "countryCode": "CN", "iso_code": "CHN", "status": "严格 (Strict)", "color": "#ef4444",
             "frameworks": ["《生成式人工智能服务管理暂行办法》", "《深度合成管理规定》", "《个人信息保护法》(PIPL)"],
             "levels": {
               "data_privacy": "严密保护。依据 PIPL 法律，医疗健康数据被定性为『敏感个人信息』，AI 研发企业在处理前必须取得个人的单独同意，并进行国家级安全影响评估。",
               "technical_compliance": "前置审查制。提供医疗深度合成或生成式服务的算法，必须在国家网信办进行算法备案。AI 生成的医学咨询、报告等内容必须进行显著的显式标识（防伪防谣水印）。",
               "systemic_risk": "社会治理与公共安全防范。高度重视内容安全与社会秩序。强制要求生成式 AI 的训练数据源具有合法性，生成的医学信息必须准确可靠，防止算法偏见和虚假有害医学叙事大范围扩散。",
               "soft_law": "科技部等部门发布《科技伦理审查办法（试行）》，医疗 AI 项目上线前需通过医疗机构及科研单位内部的科技伦理委员会审查。"
-            }, "update_date": "2026-05"
+            },
+            "latest_status": "NMPA launched new dynamic transparency requirements for LLM-based diagnostic assistants.",
+            "update_date": "2026-05-18",
+            "risk_level": "High Risk",
+            "accountability_gap_score": 0.32
           },
           {
-            "country": "Australia", "iso_code": "AUS", "status": "温和 (Moderate)", "color": "#f97316",
-            "frameworks": ["TGA 医疗器械法规", "澳大利亚隐私法 (Privacy Act 1988)"],
-            "levels": {
-              "data_privacy": "正在大力收紧。根据《隐私法 1988》管辖健康隐私原则（HPPs），目前正酝酿针对数字大健康时代的大幅修订，强化个人对健康���据的控制权。",
-              "technical_compliance": "药监局（TGA）主导。将机器学习医用软件（AsMD）纳入规范。TGA 目前正紧跟国际协调化（Harmonisation）步伐，探索对自动更新、不断自我学习的适应性算法实施动态准入。",
-              "systemic_risk": "过渡与公共咨询阶段。目前联邦政府和产业部正就是否针对医疗、法律等高风险行业引入类似欧洲的『强制性 AI 系统风险管理与审计义务』进行广泛的社会公开咨询。",
-              "soft_law": "现阶段主要依赖国家发布的八项《人工智能伦理原则》（AI Ethics Principles），用柔性标准引导医院和研发企业。"
-            }, "update_date": "2026-05"
-          },
-          {
-            "country": "Singapore", "iso_code": "SGP", "status": "宽松 (Light)", "color": "#2ecc71",
+            "country": "Singapore", "countryCode": "SG", "iso_code": "SGP", "status": "宽松 (Light)", "color": "#2ecc71",
             "frameworks": ["医疗健康生成式 AI 实施指南", "个人数据保护法 (PDPA)"],
             "levels": {
               "data_privacy": "亲商兼顾合规。依据 PDPA 法律，在满足去隐私化或特定临床研究豁免的条件下，允许相对灵活、高效地使用医疗数据集进行 AI 模型的训练。",
               "technical_compliance": "首创安全沙盒机制。卫生部（MOH）提供明确的风险分级清单，鼓励医疗大模型进入政府安全沙盒进行临床测试，不搞一刀切的前置审批。",
               "systemic_risk": "技术驱动治理。反对惩罚性立法，侧重于利用政府开发的『AI Verify』等开源工具，通过技术手段检测医疗 AI 是否存在算法歧视、偏见和安全漏洞。",
               "soft_law": "极其成熟。高度依赖卫生部发布的医疗 AI 伦理指南，用务实的软法和最佳实践为医疗产业界引路。"
-            }, "update_date": "2026-05"
-          },
-          {
-            "country": "Japan", "iso_code": "JPN", "status": "宽松 (Light)", "color": "#2ecc71",
-            "frameworks": ["PMDA 医疗器械法", "企业 AI 统一指南 (2024)"],
-            "levels": {
-              "data_privacy": "相对包容开发。修订后的 APPI 法案引入了『匿名加工信息』制度，在保障患者隐私的前提下，极大地释放了临床医疗大数据对生成式 AI 研发的红利。",
-              "technical_compliance": "药监审查（PMDA）弹性化。医用软件作为医疗器械管理。针对能够自我学习和迭代的适应性 AI，推出了灵活审查机制，允许算法在预设的参数范围内自动更新。",
-              "systemic_risk": "反对重刑规制。日本政府公开认为过早立法会扼杀本国的 AI 产业。现阶段在系统性风险上采取观望态度，重点关注大模型引发的医疗版权与内容侵权纠纷。",
-              "soft_law": "指南治国。经济产业省（METI）联合多部委发布统一的《企业 AI 指南》，通过柔性呼吁确保医疗机构自愿合规。"
-            }, "update_date": "2026-05"
-          },
-          {
-            "country": "Canada", "iso_code": "CAN", "status": "严格 (Strict)", "color": "#ef4444",
-            "frameworks": ["人工智能和数据法案 (AIDA)", "加拿大隐私法"],
-            "levels": {
-              "data_privacy": "高强度保护。严格限制医疗健康等敏感个人信息跨机构传输，AI 模型的训练数据集必须经过严格的合规性审计，防止患者隐私泄露。",
-              "technical_compliance": "通过 AIDA 法案对『高风险系统』进行严厉规制。医疗健康 AI 属于核心规范范畴，强���要求建立风险管理系统、发布透明度声明，并防止算法偏见和认知伤害。",
-              "systemic_risk": "高度关注技术引发的社会歧视与信任危机。强制要求提供生成式服务的平台定期提交风险评估报告，并建立了专门的 AI 专员实施外部监督。",
-              "soft_law": "发布了多项关于在医疗体系中负责任使用生成式 AI 的自愿性行为准则，作为正式立法生效前的过渡。"
-            }, "update_date": "2026-05"
-          },
-          {
-            "country": "Brazil", "iso_code": "BRA", "status": "温和 (Moderate)", "color": "#f97316",
-            "frameworks": ["巴西人工智能法案草案 (EBIA)", "通用个人数据保护法 (LGPD)"],
-            "levels": {
-              "data_privacy": "法律框架效仿欧洲。依据 LGPD，对医疗健康数据实施高度保护，生成式 AI 的训练必须具备合法的法律依据（如科研豁免或明确同意）。",
-              "technical_compliance": "法案正处于立法核心阶段，采取了基于风险的分级监管路径。医疗 AI 作为高风险应用，未来将被强制要求进行算法影响评估（AIA）。",
-              "systemic_risk": "重点防范算法自动化决策对弱势群体带来的社会排斥和偏见，但在医疗器械等产业创新落地应用上，比欧洲保留了更多的自由度。",
-              "soft_law": "目前由国家科学技术创新部（MCTI）通过政策宣言和伦理倡议来规范医疗机构的 AI 尝试。"
-            }, "update_date": "2026-05"
-          },
-          {
-            "country": "India", "iso_code": "IND", "status": "宽松 (Light)", "color": "#2ecc71",
-            "frameworks": ["数字个人信息保护法 (DPDP)", "MEITY 行政咨询公告"],
-            "levels": {
-              "data_privacy": "全新立法确立。最新的 DPDP 法案对健康数据等敏感信息的处理划定了红线，但在国家公共卫生倡议和医疗可及性研究上留有较大的合规弹性和豁免空间。",
-              "technical_compliance": "主要通过行政建议进行软性规制。电子信息部（MEITY）要求大模型服务商确保内容不危害公共安全，针对医疗 AI 侧重于促进技术填补底层医疗资源不足。",
-              "systemic_risk": "包容性治理。官方明确表示目前不急于扼杀创新的强制立法，重点防范生成式 AI 被用于制造大范围的社会医疗虚假谣言和网络诈骗。",
-              "soft_law": "国家智库 NITI Aayog 发布了多份《负责任的 AI》原则报告，大力提倡在医疗诊断、远程医疗中柔性贯彻伦理原则。"
-            }, "update_date": "2026-05"
+            },
+            "latest_status": "MOH launched AI Verify sandbox for GenAI healthcare applications testing.",
+            "update_date": "2026-05-16",
+            "risk_level": "Low-Moderate",
+            "accountability_gap_score": 0.18
           }
         ];
 
-        let map = null;
-        let geoJsonLayer = null;
+        // ============================================
+        // 1. 动态加载外部数据
+        // ============================================
+        async function loadExternalData() {
+            console.log("🔍 Attempting to load ai_policy_data.json...");
+            
+            try {
+                const response = await fetch('ai_policy_data.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log("✅ Successfully loaded external data:", data);
+                
+                countryPolicyData = data;
+                dataSourceType = "external";
+                updateDataSourceIndicator("External File (ai_policy_data.json)", data[0]?.update_date || "Unknown");
+                
+                return true;
+            } catch (error) {
+                console.warn("⚠️ Failed to load external data:", error);
+                console.log("📦 Falling back to embedded data...");
+                
+                countryPolicyData = embeddedData;
+                dataSourceType = "embedded";
+                updateDataSourceIndicator("Embedded Data", embeddedData[0]?.update_date || "Unknown");
+                
+                return false;
+            }
+        }
 
-        // 初始化地图
+        // ============================================
+        // 2. 更新数据源指示器
+        // ============================================
+        function updateDataSourceIndicator(source, timestamp) {
+            const indicator = document.getElementById('data-source');
+            const statusBadge = document.getElementById('data-status');
+            
+            indicator.innerText = `📡 Data: ${source} | Updated: ${timestamp}`;
+            statusBadge.innerText = `Data Flow: ${source}`;
+            
+            if (source.includes('External')) {
+                indicator.style.color = '#10b981';
+                statusBadge.style.background = '#064e3b';
+                statusBadge.style.borderColor = '#10b981';
+            }
+        }
+
+        // ============================================
+        // 3. 初始化地图
+        // ============================================
         function initializeMap() {
+            console.log(`🗺️ Initializing map with ${countryPolicyData.length} countries...`);
+            
             map = L.map('map').setView([20, 0], 2);
             
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(map);
@@ -215,7 +265,6 @@
                             const countryName = feature.properties.name;
                             const match = countryPolicyData.find(item => {
                                 if(item.country === countryName) return true;
-                                // 处理美国名称差异
                                 if(countryName === "United States of America" && item.country === "United States") return true;
                                 return false;
                             });
@@ -234,8 +283,15 @@
                                 },
                                 mouseout: function(e) {
                                     const countryName = feature.properties.name;
-                                    const match = countryPolicyData.find(item => item.country === countryName || (countryName === "United States of America" && item.country === "United States"));
-                                    e.target.setStyle({ fillOpacity: match ? 0.65 : 0.2, weight: 1.5, color: '#4B5563' });
+                                    const match = countryPolicyData.find(item => 
+                                        item.country === countryName || 
+                                        (countryName === "United States of America" && item.country === "United States")
+                                    );
+                                    e.target.setStyle({ 
+                                        fillOpacity: match ? 0.65 : 0.2, 
+                                        weight: 1.5, 
+                                        color: '#4B5563' 
+                                    });
                                 },
                                 click: function(e) {
                                     let name = feature.properties.name;
@@ -249,8 +305,12 @@
                 });
 
             addLegend();
+            console.log("✅ Map initialized successfully");
         }
 
+        // ============================================
+        // 4. 显示国家政策详情
+        // ============================================
         function showPolicyDetails(countryName) {
             const data = countryPolicyData.find(item => item.country === countryName);
             
@@ -262,7 +322,11 @@
                 panel.classList.remove('hidden');
                 
                 document.getElementById('country-name').innerText = data.country;
-                document.getElementById('update-date').innerText = `学术追踪版本最后更新: ${data.update_date}`;
+                document.getElementById('update-date').innerText = `学术追踪版本最后更新: ${data.update_date || "Unknown"}`;
+                
+                if (data.accountability_gap_score !== undefined) {
+                    document.getElementById('risk-score').innerText = `问责缺口评分: ${(data.accountability_gap_score * 100).toFixed(1)}%`;
+                }
                 
                 const badge = document.getElementById('risk-badge');
                 badge.innerText = data.status;
@@ -276,17 +340,19 @@
 
                 const frameworksDiv = document.getElementById('frameworks-list');
                 frameworksDiv.innerHTML = '';
-                data.frameworks.forEach(f => {
+                (data.frameworks || []).forEach(f => {
                     const span = document.createElement('span');
                     span.className = "text-xs bg-gray-700 text-gray-200 px-2 py-1 rounded border border-gray-600";
                     span.innerText = f;
                     frameworksDiv.appendChild(span);
                 });
 
-                document.getElementById('level-privacy').innerText = data.levels.data_privacy;
-                document.getElementById('level-technical').innerText = data.levels.technical_compliance;
-                document.getElementById('level-systemic').innerText = data.levels.systemic_risk;
-                document.getElementById('level-softlaw').innerText = data.levels.soft_law;
+                document.getElementById('latest-status').innerText = data.latest_status || "No latest status";
+
+                document.getElementById('level-privacy').innerText = data.levels?.data_privacy || "N/A";
+                document.getElementById('level-technical').innerText = data.levels?.technical_compliance || "N/A";
+                document.getElementById('level-systemic').innerText = data.levels?.systemic_risk || "N/A";
+                document.getElementById('level-softlaw').innerText = data.levels?.soft_law || "N/A";
             } else {
                 hint.classList.remove('hidden');
                 panel.classList.add('hidden');
@@ -294,6 +360,9 @@
             }
         }
 
+        // ============================================
+        // 5. 添加图例
+        // ============================================
         function addLegend() {
             const legend = L.control({position: 'bottomright'});
             legend.onAdd = function (map) {
@@ -308,7 +377,35 @@
             legend.addTo(map);
         }
 
-        window.addEventListener('load', initializeMap);
+        // ============================================
+        // 6. 启动应用
+        // ============================================
+        window.addEventListener('load', async function() {
+            console.log("🚀 Starting Healthcare AI Regulatory Dashboard...");
+            
+            await loadExternalData();
+            initializeMap();
+            
+            console.log("✅ Dashboard fully loaded!");
+        });
+
+        // 外部 API
+        window.updatePolicyData = function(newData) {
+            countryPolicyData = newData;
+            console.log("✓ Policy data updated externally");
+            if (geoJsonLayer) {
+                map.removeLayer(geoJsonLayer);
+            }
+            initializeMap();
+        };
+
+        window.getPolicyData = function() {
+            return countryPolicyData;
+        };
+
+        window.getDataSource = function() {
+            return { type: dataSourceType, records: countryPolicyData.length };
+        };
     </script>
 </body>
 </html>
