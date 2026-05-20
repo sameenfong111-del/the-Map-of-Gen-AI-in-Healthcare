@@ -1,0 +1,26 @@
+[
+  {
+    "lat": 52.3702,
+    "lng": 4.8951,
+    "location_name": "Amsterdam Domain (UvA Law Center)",
+    "latest_status": "Evaluating multi-agent algorithmic supervision limits under the EU AI Act.",
+    "color": "#ff3b30",
+    "evaluation_method": "Bayesian Policy Updating"
+  },
+  {
+    "lat": 51.9692,
+    "lng": 5.6635,
+    "location_name": "Wageningen Network (WUR Public Policy)",
+    "latest_status": "Mapping socio-ecological dataset friction points across Dutch water boards.",
+    "color": "#ffcc00",
+    "evaluation_method": "Network Topology Mapping"
+  },
+  {
+    "lat": 28.6820,
+    "lng": 115.8579,
+    "location_name": "Jiangxi Health Governance Node",
+    "latest_status": "Cross-institutional recognition data flow tracked across provincial systems.",
+    "color": "#00e5ff",
+    "evaluation_method": "Empirical Fieldwork Synthesis"
+  }
+]
