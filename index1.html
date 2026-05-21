@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style> body { margin: 0; background-color: #000; color: #fff; font-family: sans-serif; } </style>
+  <script src="//unpkg.com/globe.gl"></script>
+</head>
+<body>
+  <div id="globeViz"></div>
+  <script>
+    const globe = Globe()
+      (document.getElementById('globeViz'))
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+      .labelsData([
+        { lat: 39.9, lng: 116.4, label: 'China (NMPA) - Done', color: 'green' },
+        { lat: -35.2, lng: 149.1, label: 'Australia (TGA) - Done', color: 'green' },
+        { lat: 35.6, lng: 139.6, label: 'Japan (Data Cleaning...)', color: 'yellow' }
+      ])
+      .labelLabel(d => d.label)
+      .labelColor('color')
+      .labelText('label')
+      .labelSize(1.5);
+  </script>
+</body>
+</html>
