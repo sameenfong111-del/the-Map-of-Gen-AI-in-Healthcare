@@ -3,24 +3,108 @@
     "lat": 52.3702,
     "lng": 4.8951,
     "location_name": "Amsterdam Domain (UvA Law Center)",
-    "latest_status": "Evaluating multi-agent algorithmic supervision limits under the EU AI Act.",
     "color": "#ff3b30",
-    "evaluation_method": "Bayesian Policy Updating"
+    "latest_status": "Evaluating multi-agent algorithmic supervision limits.",
+    "region": "Europe",
+    "focus": "AI Governance"
   },
   {
     "lat": 51.9692,
     "lng": 5.6635,
     "location_name": "Wageningen Network (WUR Public Policy)",
-    "latest_status": "Mapping socio-ecological dataset friction points across Dutch water boards.",
     "color": "#ffcc00",
-    "evaluation_method": "Network Topology Mapping"
+    "latest_status": "Mapping socio-ecological dataset friction points.",
+    "region": "Europe",
+    "focus": "Environmental Policy"
   },
   {
     "lat": 28.6820,
     "lng": 115.8579,
     "location_name": "Jiangxi Health Governance Node",
-    "latest_status": "Cross-institutional recognition data flow tracked across provincial systems.",
     "color": "#00e5ff",
-    "evaluation_method": "Empirical Fieldwork Synthesis"
+    "latest_status": "Cross-institutional recognition data flow tracked.",
+    "region": "Asia",
+    "focus": "Health Governance"
+  },
+  {
+    "lat": 39.9042,
+    "lng": 116.4074,
+    "location_name": "Beijing Policy Research Institute",
+    "color": "#00e5ff",
+    "latest_status": "Regulatory framework harmonization in progress.",
+    "region": "Asia",
+    "focus": "Digital Economy"
+  },
+  {
+    "lat": 48.8566,
+    "lng": 2.3522,
+    "location_name": "Paris Innovation Hub",
+    "color": "#ff3b30",
+    "latest_status": "EU GDPR compliance audit completed.",
+    "region": "Europe",
+    "focus": "Data Protection"
+  },
+  {
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "location_name": "London Financial Regulator",
+    "color": "#ffcc00",
+    "latest_status": "Fintech sandbox expansion underway.",
+    "region": "Europe",
+    "focus": "Financial Services"
+  },
+  {
+    "lat": 40.7128,
+    "lng": -74.0060,
+    "location_name": "New York Compliance Center",
+    "color": "#ff3b30",
+    "latest_status": "Cross-border data transfer agreements signed.",
+    "region": "North America",
+    "focus": "Data Governance"
+  },
+  {
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "location_name": "San Francisco Tech Oversight",
+    "color": "#00e5ff",
+    "latest_status": "Platform algorithm transparency review initiated.",
+    "region": "North America",
+    "focus": "AI Transparency"
+  },
+  {
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "location_name": "Tokyo Regulatory Bureau",
+    "color": "#ffcc00",
+    "latest_status": "Digital platform regulation framework published.",
+    "region": "Asia",
+    "focus": "Platform Governance"
+  },
+  {
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "location_name": "Singapore FinTech Authority",
+    "color": "#00e5ff",
+    "latest_status": "Blockchain regulatory sandbox active.",
+    "region": "Asia",
+    "focus": "Cryptocurrency Regulation"
+  },
+  {
+    "lat": -33.8688,
+    "lng": 151.2093,
+    "location_name": "Sydney Digital Governance",
+    "color": "#ff3b30",
+    "latest_status": "Data minimization guidelines implemented.",
+    "region": "Oceania",
+    "focus": "Privacy Protection"
+  },
+  {
+    "lat": 52.5200,
+    "lng": 13.4050,
+    "location_name": "Berlin Digital Ethics Lab",
+    "color": "#ffcc00",
+    "latest_status": "AI ethics certification program launched.",
+    "region": "Europe",
+    "focus": "AI Ethics"
   }
 ]
